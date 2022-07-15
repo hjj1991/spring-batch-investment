@@ -1,0 +1,39 @@
+spring:
+  profiles:
+    active: local
+    include: oauth
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 100
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+        format_sql: true
+        default_batch_fetch_size: 100
+#    show-sql: true
+
+api:
+  fss:
+    authKey: 37cc4a0dc642205bb06d557239e72e77
+    host: finlife.fss.or.kr
+    bank:
+      path: finlifeapi/companySearch.json
+
+
+--- #local
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    hikari:
+      driver-class-name: org.mariadb.jdbc.Driver
+      jdbc-url: jdbc:mariadb://localhost:3306/api_server?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf-8
+      username: hjj1991
+      password: wowjddl1
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true

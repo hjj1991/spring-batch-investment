@@ -1,12 +1,16 @@
 package com.example.springbatchinvestment.domain.entity;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "tb_bank")
 public class Bank extends BaseTimeEntity {
 
@@ -39,5 +43,10 @@ public class Bank extends BaseTimeEntity {
 
     @Column
     private int enable;
+
+
+    @OneToMany(mappedBy = "bank", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Deposit> deposits = new ArrayList<>();
 
 }

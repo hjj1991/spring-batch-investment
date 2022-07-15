@@ -1,22 +1,27 @@
 package com.example.springbatchinvestment.domain.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Getter
-@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "tb_deposit")
+@IdClass(DepositPK.class)
 public class Deposit extends BaseTimeEntity {
 
-    @Id
 
 
+    @Id//금융상품코드
+    private String finPrdtCd;
+
+    @Id//금융회사코드
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name ="finCoNo", foreignKey = @ForeignKey(name = "none"))
+    private Bank bank;
 
     @Column//최고한도
     private Long maxLimit;
@@ -32,10 +37,6 @@ public class Deposit extends BaseTimeEntity {
     private String joinDeny;
     @Column//금융회사명
     private String korCoNm;
-    @Column//금융회사코드
-    private String finCoNo;
-    @Column//금융상품코드
-    private String finPrdtCd;
     @Column//금융상품명
     private String finPrdtNm;
     @Column//기타 유의사항
@@ -44,4 +45,5 @@ public class Deposit extends BaseTimeEntity {
     private String dclsMonth;
     @Column//금융회사 제출일 [YYYYMMDDHH24MI]
     private String finCoSubmDay;
+
 }
