@@ -1,9 +1,12 @@
 package com.example.springbatchinvestment;
 
 import com.example.springbatchinvestment.domain.dto.BankDto;
+import com.example.springbatchinvestment.domain.dto.DepositDto;
 import com.example.springbatchinvestment.domain.entity.Bank;
+import com.example.springbatchinvestment.domain.entity.Deposit;
 import com.example.springbatchinvestment.processor.CustomBankItemProcessor;
 import com.example.springbatchinvestment.reader.CustomBankItemReader;
+import com.example.springbatchinvestment.reader.CustomDepositItemReader;
 import com.example.springbatchinvestment.repository.BankRepository;
 import com.example.springbatchinvestment.writer.JpaItemListWriter;
 import lombok.RequiredArgsConstructor;
@@ -87,6 +90,23 @@ public class BachConfig {
     public ItemReader<? extends List<BankDto>> bankItemReader(@Value("#{jobParameters['topFinGrpNo']}") String topFinGrpNo) {
 
         return new CustomBankItemReader(webClient, modelMapper, topFinGrpNo);
+    }
+
+    @Bean
+    public Step depositSyncStep(){
+        return stepBuilderFactory.get("depositSyncStep")
+                .<List<DepositDto>, List<Deposit>>chunk(1)
+                .reader(depositItemReader(null))
+                .processor(depositItemProcessor())
+                .writer(depositItemWriterList())
+                .build();
+    }
+
+    @Bean
+    @StepScope
+    public ItemReader<? extends List<DepositDto>> depositItemReader(@Value("#{jobParameters['topFinGrpNo']}") String topFinGrpNo) {
+        return new CustomDepositItemReader(webClient, modelMapper, topFinGrpNo);
+
     }
 
 }

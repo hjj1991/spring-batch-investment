@@ -20,6 +20,8 @@ api:
     host: finlife.fss.or.kr
     bank:
       path: finlifeapi/companySearch.json
+    deposit:
+      path: finlifeapi/depositProductsSearch.json
 
 
 --- #local

@@ -3,6 +3,8 @@ package com.example.springbatchinvestment.domain.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Builder
@@ -45,5 +47,9 @@ public class Deposit extends BaseTimeEntity {
     private String dclsMonth;
     @Column//금융회사 제출일 [YYYYMMDDHH24MI]
     private String finCoSubmDay;
+
+    @OneToMany(mappedBy = "deposit", fetch = FetchType.LAZY)
+    private List<DepositOption> depositOptions = new ArrayList<>();
+
 
 }

@@ -12,7 +12,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class SpringBatchInvestmentApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SpringBatchInvestmentApplication.class, args);
+
+        System.exit(SpringApplication
+                .exit(SpringApplication.run(SpringBatchInvestmentApplication.class, args)));
+//        SpringApplication.run(SpringBatchInvestmentApplication.class, args);
     }
 
 
