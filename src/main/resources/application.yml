@@ -31,10 +31,10 @@ spring:
       on-profile: local
   datasource:
     hikari:
-      driver-class-name: org.mariadb.jdbc.Driver
-      jdbc-url: jdbc:mariadb://localhost:3306/api_server?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf-8
-      username: hjj1991
-      password: wowjddl1
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://containers-us-west-26.railway.app:6001/railway?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf-8
+      username: root
+      password: kHxLwtCsXafkwjWtaJae
 decorator:
   datasource:
     p6spy:

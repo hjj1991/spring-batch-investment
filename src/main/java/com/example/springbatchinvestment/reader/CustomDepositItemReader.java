@@ -57,8 +57,8 @@ public class CustomDepositItemReader implements ItemReader<List<DepositDto>> {
         return result.getResult().getBaseList().stream().map(depositInfo ->{
             DepositDto bankDto = modelMapper.map(depositInfo, DepositDto.class);
 
-            result.getResult().getOptionList().stream().map(option -> {
-            })
+//            result.getResult().getOptionList().stream().map(option -> {
+//            })
 
 
             return bankDto;

@@ -22,7 +22,7 @@ public class Deposit extends BaseTimeEntity {
 
     @Id//금융회사코드
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name ="finCoNo", foreignKey = @ForeignKey(name = "none"))
+    @JoinColumn(name ="finCoNo", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Bank bank;
 
     @Column//최고한도

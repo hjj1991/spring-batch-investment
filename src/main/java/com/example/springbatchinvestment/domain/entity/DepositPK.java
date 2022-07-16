@@ -12,7 +12,7 @@ public class DepositPK implements Serializable {
     private static final long serialVersionUID = -2929789292155268166L;
 
     @EqualsAndHashCode.Include
-    private Bank bank;
+    private String bank;    //finCoNo
     @EqualsAndHashCode.Include
     private String finPrdtCd;
 

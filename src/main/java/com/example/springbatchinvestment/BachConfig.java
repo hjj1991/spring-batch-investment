@@ -5,6 +5,7 @@ import com.example.springbatchinvestment.domain.dto.DepositDto;
 import com.example.springbatchinvestment.domain.entity.Bank;
 import com.example.springbatchinvestment.domain.entity.Deposit;
 import com.example.springbatchinvestment.processor.CustomBankItemProcessor;
+import com.example.springbatchinvestment.processor.CustomDepositItemProcessor;
 import com.example.springbatchinvestment.reader.CustomBankItemReader;
 import com.example.springbatchinvestment.reader.CustomDepositItemReader;
 import com.example.springbatchinvestment.repository.BankRepository;
@@ -20,6 +21,7 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
@@ -100,6 +102,16 @@ public class BachConfig {
                 .processor(depositItemProcessor())
                 .writer(depositItemWriterList())
                 .build();
+    }
+
+
+    private ItemWriter<? super List<Deposit>> depositItemWriterList() {
+        return null;
+    }
+
+    @Bean
+    public ItemProcessor<? super List<DepositDto>, ? extends List<Deposit>> depositItemProcessor() {
+        return new CustomDepositItemProcessor();
     }
 
     @Bean
