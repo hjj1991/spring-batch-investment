@@ -1,10 +1,7 @@
 package com.example.springbatchinvestment.reader;
 
-import com.example.springbatchinvestment.domain.dto.BankDto;
 import com.example.springbatchinvestment.domain.dto.DepositDto;
 import com.example.springbatchinvestment.domain.dto.DepositOptionDto;
-import com.example.springbatchinvestment.domain.entity.Bank;
-import com.example.springbatchinvestment.domain.entity.Deposit;
 import org.modelmapper.ModelMapper;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.NonTransientResourceException;
@@ -13,14 +10,12 @@ import org.springframework.batch.item.UnexpectedInputException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CustomDepositItemReader implements ItemReader<List<DepositDto>> {
-    public CustomDepositItemReader(WebClient webClient, ModelMapper modelMapper, String topFinGrpNo) {
+public class CustomDepositOptionItemReader implements ItemReader<List<DepositOptionDto>> {
+    public CustomDepositOptionItemReader(WebClient webClient, ModelMapper modelMapper, String topFinGrpNo) {
         this.webClient = webClient;
         this.modelMapper = modelMapper;
         this.topFinGrpNo = topFinGrpNo;
@@ -37,8 +32,9 @@ public class CustomDepositItemReader implements ItemReader<List<DepositDto>> {
     private String authKey;
     private int currentPage = 1;
 
+
     @Override
-    public List<DepositDto> read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
+    public List<DepositOptionDto> read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
         DepositDto.ResponseDepositApi result = getDepositList(currentPage, topFinGrpNo);
 
         /* 정상 호출이 실패한 경우 break */
@@ -56,7 +52,7 @@ public class CustomDepositItemReader implements ItemReader<List<DepositDto>> {
         currentPage++;
 
 
-        return result.getResult().getBaseList().stream().map(depositInfo -> modelMapper.map(depositInfo, DepositDto.class)).collect(Collectors.toList());
+        return result.getResult().getOptionList().stream().map(depositOptionInfo -> modelMapper.map(depositOptionInfo, DepositOptionDto.class)).collect(Collectors.toList());
     }
 
 

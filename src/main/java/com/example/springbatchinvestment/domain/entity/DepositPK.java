@@ -2,6 +2,7 @@ package com.example.springbatchinvestment.domain.entity;
 
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.io.Serializable;
 
@@ -16,4 +17,8 @@ public class DepositPK implements Serializable {
     @EqualsAndHashCode.Include
     private String finPrdtCd;
 
+    public DepositPK(String finCoNo, String finPrdtCd) {
+        bank = finCoNo;
+        this.finPrdtCd = finPrdtCd;
+    }
 }

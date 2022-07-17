@@ -45,8 +45,15 @@ public class Deposit extends BaseTimeEntity {
     private String etcNote;
     @Column//공시 제출일[YYYYMM]
     private String dclsMonth;
+    @Column
+    private String dclsStartDay;
+    @Column
+    private String dclsEndDay;
     @Column//금융회사 제출일 [YYYYMMDDHH24MI]
     private String finCoSubmDay;
+
+    @Column
+    private int enable;
 
     @OneToMany(mappedBy = "deposit", fetch = FetchType.LAZY)
     private List<DepositOption> depositOptions = new ArrayList<>();

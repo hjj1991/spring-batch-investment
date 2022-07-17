@@ -1,30 +1,63 @@
 package com.example.springbatchinvestment.domain.dto;
 
+import com.example.springbatchinvestment.domain.entity.Bank;
+import com.example.springbatchinvestment.domain.entity.Deposit;
+import com.example.springbatchinvestment.domain.entity.DepositOption;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 public class DepositDto {
 
-    private double intrRate2;
-    private double intrRate;
-    private String saveTrm;
-    private String intrRateTypeNm;
-    private String intrRateType;
+    private String finCoSubmDay;
+    private String dclsStrtDay;
+    private long maxLimit;
+    private String etcNote;
+    private String joinMember;
+    private String joinDeny;
+    private String spclCnd;
+    private String mtrtInt;
+    private String joinWay;
+    private String finPrdtNm;
+    private String korCoNm;
     private String finPrdtCd;
     private String finCoNo;
     private String dclsMonth;
 
-    private List<Option> options;
+    private List<DepositOptionDto> options;
+
+    public Deposit toEntity(Bank bank){
+
+//        List<DepositOption> depositOptions = options.stream().map(option -> option.toEntity()).collect(Collectors.toList());
+
+        return Deposit.builder()
+                .finPrdtCd(finPrdtCd)
+                .bank(bank)
+                .finCoSubmDay(finCoSubmDay)
+                .dclsStartDay(dclsStrtDay)
+                .maxLimit(maxLimit)
+                .etcNote(etcNote)
+                .joinMember(joinMember)
+                .joinDeny(joinDeny)
+                .spclCnd(spclCnd)
+                .mtrtInt(mtrtInt)
+                .joinWay(joinWay)
+                .finPrdtNm(finPrdtNm)
+                .korCoNm(korCoNm)
+                .dclsMonth(dclsMonth)
+                .build();
+    }
 
     @Getter
     @Setter
     public static class Result {
-        private List<Option> optionList;
+        private List<DepositOptionDto> optionList;
         private List<Baselist> baseList;
         @JsonProperty("err_msg")
         private String errMsg;
@@ -40,26 +73,6 @@ public class DepositDto {
         private String prdtDiv;
     }
 
-    @Getter
-    @Setter
-    public static class Option {
-        @JsonProperty("intr_rate2")
-        private double intrRate2;
-        @JsonProperty("intr_rate")
-        private double intrRate;
-        @JsonProperty("save_trm")
-        private String saveTrm;
-        @JsonProperty("intr_rate_type_nm")
-        private String intrRateTypeNm;
-        @JsonProperty("intr_rate_type")
-        private String intrRateType;
-        @JsonProperty("fin_prdt_cd")
-        private String finPrdtCd;
-        @JsonProperty("fin_co_no")
-        private String finCoNo;
-        @JsonProperty("dcls_month")
-        private String dclsMonth;
-    }
 
     @Getter
     @Setter
@@ -96,7 +109,7 @@ public class DepositDto {
 
     @Data
     public static class ResponseDepositApi {
-        private BankDto.Result result;
+        private Result result;
 
 
         public boolean requestSuccess(){

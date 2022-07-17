@@ -39,7 +39,7 @@ public class BankDto {
     @Getter
     @Setter
     public static class Result {
-        private List<Option> optionList;
+        private List<DepositOptionDto> optionList;
         private List<Baselist> baseList;
         @JsonProperty("err_msg")
         private String errMsg;

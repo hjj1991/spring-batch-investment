@@ -2,13 +2,18 @@ package com.example.springbatchinvestment;
 
 import com.example.springbatchinvestment.domain.dto.BankDto;
 import com.example.springbatchinvestment.domain.dto.DepositDto;
+import com.example.springbatchinvestment.domain.dto.DepositOptionDto;
 import com.example.springbatchinvestment.domain.entity.Bank;
 import com.example.springbatchinvestment.domain.entity.Deposit;
+import com.example.springbatchinvestment.domain.entity.DepositOption;
 import com.example.springbatchinvestment.processor.CustomBankItemProcessor;
 import com.example.springbatchinvestment.processor.CustomDepositItemProcessor;
+import com.example.springbatchinvestment.processor.CustomDepositOptionItemProcessor;
 import com.example.springbatchinvestment.reader.CustomBankItemReader;
 import com.example.springbatchinvestment.reader.CustomDepositItemReader;
+import com.example.springbatchinvestment.reader.CustomDepositOptionItemReader;
 import com.example.springbatchinvestment.repository.BankRepository;
+import com.example.springbatchinvestment.repository.DepositRepository;
 import com.example.springbatchinvestment.writer.JpaItemListWriter;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -42,6 +47,7 @@ public class BachConfig {
     private final StepBuilderFactory stepBuilderFactory;
     private final EntityManagerFactory em;
     private final BankRepository bankRepository;
+    private final DepositRepository depositRepository;
 
     @Bean
     public Job bankSyncJob(){
@@ -49,8 +55,12 @@ public class BachConfig {
                 .incrementer(new RunIdIncrementer())
                 .start(bankInitStep(null))
                 .next(bankSyncStep())
+                .next(depositSyncStep())
+                .next(depositOptionSyncStep())
                 .build();
     }
+
+
 
     @Bean
     @JobScope
@@ -75,23 +85,13 @@ public class BachConfig {
     }
 
     @Bean
-    public ItemProcessor<? super List<BankDto>, ? extends List<Bank>> bankItemProcessor() {
-        return new CustomBankItemProcessor();
-    }
-
-
-    public JpaItemListWriter<Bank> bankItemWriterList() {
-        JpaItemWriter<Bank> writer = new JpaItemWriter<>();
-        writer.setEntityManagerFactory(em);
-        return new JpaItemListWriter<>(writer);
-
-    }
-
-    @Bean
-    @StepScope
-    public ItemReader<? extends List<BankDto>> bankItemReader(@Value("#{jobParameters['topFinGrpNo']}") String topFinGrpNo) {
-
-        return new CustomBankItemReader(webClient, modelMapper, topFinGrpNo);
+    public Step depositOptionSyncStep() {
+        return stepBuilderFactory.get("depositOptionsSyncStep")
+                .<List<DepositOptionDto>, List<DepositOption>>chunk(1)
+                .reader(depositOptionItemReader(null))
+                .processor(depositOptionItemProcessor())
+                .writer(depositOptionItemWriterList())
+                .build();
     }
 
     @Bean
@@ -104,14 +104,61 @@ public class BachConfig {
                 .build();
     }
 
+    @Bean
+    public ItemWriter<? super List<DepositOption>> depositOptionItemWriterList() {
+        JpaItemWriter<DepositOption> writer = new JpaItemWriter<>();
+        writer.setEntityManagerFactory(em);
+        return new JpaItemListWriter<>(writer);
+    }
 
-    private ItemWriter<? super List<Deposit>> depositItemWriterList() {
-        return null;
+    @Bean
+    public ItemProcessor<? super List<DepositOptionDto>, ? extends List<DepositOption>> depositOptionItemProcessor() {
+        return new CustomDepositOptionItemProcessor(depositRepository);
+    }
+
+    @Bean
+    @JobScope
+    public ItemReader<? extends List<DepositOptionDto>> depositOptionItemReader(@Value("#{jobParameters['topFinGrpNo']}") String topFinGrpNo) {
+
+        return new CustomDepositOptionItemReader(webClient, modelMapper, topFinGrpNo);
+    }
+
+
+
+    @Bean
+    public JpaItemListWriter<Bank> bankItemWriterList() {
+        JpaItemWriter<Bank> writer = new JpaItemWriter<>();
+        writer.setEntityManagerFactory(em);
+        return new JpaItemListWriter<>(writer);
+
+    }
+
+    @Bean
+    public ItemProcessor<? super List<BankDto>, ? extends List<Bank>> bankItemProcessor() {
+        return new CustomBankItemProcessor();
+    }
+
+
+    @Bean
+    @StepScope
+    public ItemReader<? extends List<BankDto>> bankItemReader(@Value("#{jobParameters['topFinGrpNo']}") String topFinGrpNo) {
+
+        return new CustomBankItemReader(webClient, modelMapper, topFinGrpNo);
+    }
+
+
+
+
+    @Bean
+    public ItemWriter<? super List<Deposit>> depositItemWriterList() {
+        JpaItemWriter<Deposit> writer = new JpaItemWriter<>();
+        writer.setEntityManagerFactory(em);
+        return new JpaItemListWriter<>(writer);
     }
 
     @Bean
     public ItemProcessor<? super List<DepositDto>, ? extends List<Deposit>> depositItemProcessor() {
-        return new CustomDepositItemProcessor();
+        return new CustomDepositItemProcessor(bankRepository);
     }
 
     @Bean
