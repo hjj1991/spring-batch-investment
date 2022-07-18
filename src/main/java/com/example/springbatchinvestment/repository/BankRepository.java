@@ -9,6 +9,6 @@ import org.springframework.data.repository.query.Param;
 public interface BankRepository extends JpaRepository<Bank, String> {
 
     @Modifying(clearAutomatically = true)
-    @Query("update Bank set enable =:enable where finCoNo = :finCoNo")
-    void updateBankEnable(@Param("finCoNo") String finCoNo, @Param("enable") int enable);
+    @Query("update Bank set enable = :enable")
+    void updateBankAllEnable(@Param("enable") int enable);
 }

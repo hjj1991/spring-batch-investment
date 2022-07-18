@@ -6,6 +6,7 @@ import com.example.springbatchinvestment.repository.BankRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.ItemProcessor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,7 +18,9 @@ public class CustomDepositItemProcessor implements ItemProcessor<List<DepositDto
 
     @Override
     public List<Deposit> process(List<DepositDto> items) throws Exception {
+        List<Deposit> deposits = new ArrayList<>();
+        items.stream().forEach(depositDto -> deposits.add(depositDto.toEntity(bankRepository.getReferenceById(depositDto.getFinCoNo()))));
 
-        return items.stream().map(depositDto -> depositDto.toEntity(bankRepository.getReferenceById(depositDto.getFinCoNo()))).collect(Collectors.toList());
+        return deposits;
     }
 }

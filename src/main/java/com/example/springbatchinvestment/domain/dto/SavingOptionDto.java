@@ -1,14 +1,10 @@
 package com.example.springbatchinvestment.domain.dto;
 
-import com.example.springbatchinvestment.domain.entity.Deposit;
-import com.example.springbatchinvestment.domain.entity.DepositOption;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Setter
-@Getter
-public class DepositOptionDto {
+@Data
+public class SavingOptionDto {
 
     @JsonProperty("intr_rate2")
     private double intrRate2;
@@ -16,6 +12,10 @@ public class DepositOptionDto {
     private double intrRate;
     @JsonProperty("save_trm")
     private String saveTrm;
+    @JsonProperty("rsrv_type_nm")
+    private String rsrvTypeNm;
+    @JsonProperty("rsrv_type")
+    private String rsrvType;
     @JsonProperty("intr_rate_type_nm")
     private String intrRateTypeNm;
     @JsonProperty("intr_rate_type")
@@ -27,15 +27,4 @@ public class DepositOptionDto {
     @JsonProperty("dcls_month")
     private String dclsMonth;
 
-
-    public DepositOption toEntity(Deposit deposit){
-        return DepositOption.builder()
-                .deposit(deposit)
-                .intrRate(intrRate)
-                .intrRate2(intrRate2)
-                .saveTrm(saveTrm)
-                .intrRateTypeNm(intrRateTypeNm)
-                .intrRateType(intrRateType)
-                .dclsMonth(dclsMonth).build();
-    }
 }

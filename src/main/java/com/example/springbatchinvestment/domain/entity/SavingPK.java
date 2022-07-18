@@ -7,17 +7,18 @@ import java.io.Serializable;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
-public class DepositPK implements Serializable {
+public class SavingPK implements Serializable {
 
-    private static final long serialVersionUID = -2929789292155268166L;
+
+    private static final long serialVersionUID = -4052438448409315836L;
 
     @EqualsAndHashCode.Include
     private String bank;    //finCoNo
     @EqualsAndHashCode.Include
     private String finPrdtCd;
 
-    public DepositPK(String finCoNo, String finPrdtCd) {
-        bank = finCoNo;
+    public SavingPK(String finCoNo, String finPrdtCd) {
+        this.bank = finCoNo;
         this.finPrdtCd = finPrdtCd;
     }
 }
