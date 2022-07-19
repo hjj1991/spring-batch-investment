@@ -44,3 +44,15 @@ decorator:
 logging:
   level:
     org.springframework.jdbc: debug
+
+--- #prod
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    hikari:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://${DBHOST}:${DBPORT}/railway?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf-8
+      username: root
+      password: ${DBPW}
