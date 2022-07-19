@@ -17,7 +17,7 @@ spring:
     show-sql: true
   batch:
     job:
-      enabled: false
+      enabled: true
       names: ${job.name:NONE}
 api:
   fss:
