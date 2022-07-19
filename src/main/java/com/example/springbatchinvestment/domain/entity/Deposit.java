@@ -57,6 +57,7 @@ public class Deposit extends BaseTimeEntity {
     private int enable;
 
     @OneToMany(mappedBy = "deposit", fetch = FetchType.LAZY)
+    @Builder.Default
     private List<DepositOption> depositOptions = new ArrayList<>();
 
 
