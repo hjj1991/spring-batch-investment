@@ -18,6 +18,7 @@ spring:
   batch:
     job:
       enabled: false
+      names: ${job.name:NONE}
 api:
   fss:
     authKey: 37cc4a0dc642205bb06d557239e72e77
