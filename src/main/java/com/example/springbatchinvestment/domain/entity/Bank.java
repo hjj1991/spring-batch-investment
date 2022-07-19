@@ -1,12 +1,16 @@
 package com.example.springbatchinvestment.domain.entity;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "tb_bank")
 public class Bank extends BaseTimeEntity {
 
@@ -20,17 +24,18 @@ public class Bank extends BaseTimeEntity {
     }
 
     @Id
+    @Column(length = 20)
     private String finCoNo;
 
     @Column
     private String dclsMonth;
-    @Column
+    @Column(length = 100)
     private String korCoNm;
     @Column
     private String dclsChrgMan;
     @Column
     private String hompUrl;
-    @Column
+    @Column(length = 50)
     private String calTel;
 
     @Column
@@ -39,5 +44,10 @@ public class Bank extends BaseTimeEntity {
 
     @Column
     private int enable;
+
+
+    @OneToMany(mappedBy = "bank", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Deposit> deposits = new ArrayList<>();
 
 }

@@ -1,21 +1,17 @@
 package com.example.springbatchinvestment.domain.entity;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "tb_deposit")
-@IdClass(DepositPK.class)
-public class Deposit extends BaseTimeEntity {
-
-
+@NoArgsConstructor
+@IdClass(SavingPK.class)
+@Table(name = "tb_saving")
+public class Saving extends BaseTimeEntity{
 
     @Id//금융상품코드
     @Column(length = 50)
@@ -25,6 +21,7 @@ public class Deposit extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name ="finCoNo", columnDefinition="VARCHAR(20)", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Bank bank;
+
 
     @Column//최고한도
     private Long maxLimit;
@@ -46,18 +43,15 @@ public class Deposit extends BaseTimeEntity {
     private String etcNote;
     @Column//공시 제출일[YYYYMM]
     private String dclsMonth;
-    @Column
-    private String dclsStrtDay;
-    @Column
-    private String dclsEndDay;
     @Column//금융회사 제출일 [YYYYMMDDHH24MI]
     private String finCoSubmDay;
 
     @Column
+    private String dclsStrtDay;
+    @Column
+    private String dclsEndDay;
+
+    @Column
     private int enable;
-
-    @OneToMany(mappedBy = "deposit", fetch = FetchType.LAZY)
-    private List<DepositOption> depositOptions = new ArrayList<>();
-
 
 }
