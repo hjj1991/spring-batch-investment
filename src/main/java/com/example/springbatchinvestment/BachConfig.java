@@ -66,7 +66,7 @@ public class BachConfig {
     public Job depositSyncJob() {
         return jobBuilderFactory.get("savingSyncJob")
                 .incrementer(new RunIdIncrementer())
-                .start(depositSyncStep())
+                .start(savingSyncStep())
                 .build();
     }
 
@@ -74,7 +74,7 @@ public class BachConfig {
     public Job savingSyncJob(){
         return jobBuilderFactory.get("depositSyncJob")
                 .incrementer(new RunIdIncrementer())
-                .start(savingSyncStep())
+                .start(depositSyncStep())
                 .build();
     }
 
