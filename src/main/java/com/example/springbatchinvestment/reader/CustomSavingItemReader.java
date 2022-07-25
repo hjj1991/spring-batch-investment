@@ -76,13 +76,6 @@ public class CustomSavingItemReader implements ItemReader<List<SavingDto>> {
 
             SavingDto savingDto = modelMapper.map(savingInfo, SavingDto.class);
 
-
-            savingDto.setSpclCnd(savingDto.getSpclCnd().replace("\n", "\\n"));
-            savingDto.setEtcNote(savingDto.getEtcNote().replace("\n", "\\n"));
-            savingDto.setMtrtInt(savingDto.getMtrtInt().replace("\n", "\\n"));
-
-
-
             savingDto.setOptions(savingOptionDtos);
             return savingDto;
         }).collect(Collectors.toList());
