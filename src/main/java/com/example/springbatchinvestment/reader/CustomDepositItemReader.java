@@ -69,10 +69,6 @@ public class CustomDepositItemReader implements ItemReader<List<DepositDto>> {
 
             DepositDto depositDto = modelMapper.map(depositInfo, DepositDto.class);
 
-            depositDto.setSpclCnd(depositDto.getSpclCnd().replace("\n", "<br>"));
-            depositDto.setMtrtInt(depositDto.getMtrtInt().replace("\n", "<br>"));
-            depositDto.setEtcNote(depositDto.getEtcNote().replace("\n", "<br>"));
-
             depositDto.setOptions(depositOptionDtos);
             return depositDto;
         }).collect(Collectors.toList());
