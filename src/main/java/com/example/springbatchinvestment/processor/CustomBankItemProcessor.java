@@ -10,8 +10,7 @@ import java.util.stream.Collectors;
 public class CustomBankItemProcessor implements ItemProcessor<List<BankDto>, List<Bank>> {
 
     @Override
-    public List<Bank> process(List<BankDto> items) throws Exception {
-
-        return items.stream().map(bankDto -> bankDto.toEntity()).collect(Collectors.toList());
+    public List<Bank> process(List<BankDto> items)  {
+        return items.stream().map(BankDto::toEntity).collect(Collectors.toList());
     }
 }

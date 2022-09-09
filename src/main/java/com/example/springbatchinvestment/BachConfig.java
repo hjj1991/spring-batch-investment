@@ -56,9 +56,9 @@ public class BachConfig {
     @Bean
     public Job bankSyncJob(){
         return jobBuilderFactory.get("bankSyncJob")
-                .incrementer(new RunIdIncrementer())
-                .start(bankInitStep())
-                .next(bankSyncStep())
+                .incrementer(new RunIdIncrementer())    /* 여러번 호출할 수 있도록 RunIdIncrementer 메서드를 사용하여 중복되지 않게 실행 */
+                .start(bankInitStep())                  /* 기존 은행목록들의 사용여부를 0으로 바꿔주는 Step */
+                .next(bankSyncStep())                   /* 금융감독원 OPEN API를 이용하여 동기화하는 Step */
                 .build();
     }
 
@@ -179,7 +179,6 @@ public class BachConfig {
 
     @Bean
     public ItemReader<List<BankDto>> bankItemReader() {
-
         return new CustomBankItemReader(webClient, modelMapper);
     }
 

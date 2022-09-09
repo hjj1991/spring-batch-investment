@@ -29,15 +29,15 @@ public class CustomBankItemReader implements ItemReader<List<BankDto>> {
     private final WebClient webClient;
     private final ModelMapper modelMapper;
     @Value(value = "${api.fss.host}")
-    private String fssHost;
+    private String fssHost;     // 금융감독원 OPEN API 호스트정보
     @Value(value = "${api.fss.bank.path}")
-    private String bankPath;
+    private String bankPath;    // 금융감독원 OPEN API 금융회사 요청 Path
     @Value(value = "${api.fss.authKey}")
-    private String authKey;
+    private String authKey;     // API 호출을 위한 키값
 
-    private int currentPage = 1;
+    private int currentPage = 1;    //현재 요청 PAGE
 
-    private List<String> topFinGrpNoList = new ArrayList<>(Arrays.asList("020000", "030300"));
+    private List<String> topFinGrpNoList = new ArrayList<>(Arrays.asList("020000", "030300"));  //권역 코드
     private int currentGrpNo = 0;
 
 
@@ -57,6 +57,7 @@ public class CustomBankItemReader implements ItemReader<List<BankDto>> {
             currentGrpNo++;
             currentPage = 0;
         }else if(result.isOverLastPage() && currentGrpNo == 1){
+            /* return 값으로 null을 반환 할 경우 read 종료 */
             return null;
         }
 
