@@ -64,19 +64,19 @@ public class BachConfig {
 
     @Bean
     public Job depositSyncJob() {
-        return jobBuilderFactory.get("savingSyncJob")
+        return jobBuilderFactory.get("depositSyncJob")
                 .incrementer(new RunIdIncrementer())
-                .start(savingInitStep())
-                .next(savingSyncStep())
+                .start(depositInitStep())                /* 기존 예금목록들의 사용여부를 0으로 바꿔주는 Step */
+                .next(depositSyncStep())                 /* 금융감독원 OPEN API를 이용하여 동기화하는 Step */
                 .build();
     }
 
     @Bean
     public Job savingSyncJob(){
-        return jobBuilderFactory.get("depositSyncJob")
+        return jobBuilderFactory.get("savingSyncJob")
                 .incrementer(new RunIdIncrementer())
-                .start(depositInitStep())
-                .next(depositSyncStep())
+                .start(savingInitStep())
+                .next(savingSyncStep())
                 .build();
     }
 
@@ -168,7 +168,6 @@ public class BachConfig {
         JpaItemWriter<Bank> writer = new JpaItemWriter<>();
         writer.setEntityManagerFactory(em);
         return new JpaItemListWriter<>(writer);
-
     }
 
     @Bean
@@ -198,10 +197,8 @@ public class BachConfig {
 
 
     @Bean
-    @StepScope
     public ItemReader<List<DepositDto>> depositItemReader() {
         return new CustomDepositItemReader(webClient, modelMapper);
-
     }
 
 }

@@ -4,9 +4,6 @@ import com.example.springbatchinvestment.domain.dto.DepositDto;
 import com.example.springbatchinvestment.domain.dto.DepositOptionDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.NonTransientResourceException;
-import org.springframework.batch.item.ParseException;
-import org.springframework.batch.item.UnexpectedInputException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -36,19 +33,19 @@ public class CustomDepositItemReader implements ItemReader<List<DepositDto>> {
     private int currentGrpNo = 0;
 
     @Override
-    public List<DepositDto> read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
+    public List<DepositDto> read() throws Exception {
         DepositDto.ResponseDepositApi result = getDepositList(currentPage, topFinGrpNoList.get(currentGrpNo));
 
         /* 정상 호출이 실패한 경우 break */
-        if(!result.requestSuccess()){
+        if (!result.requestSuccess()) {
             throw new Exception("");
         }
 
 
-        if(result.isOverLastPage() && currentGrpNo == 0){
+        if (result.isOverLastPage() && currentGrpNo == 0) {
             currentGrpNo++;
             currentPage = 0;
-        }else if(result.isOverLastPage() && currentGrpNo == 1){
+        } else if (result.isOverLastPage() && currentGrpNo == 1) {
             return null;
         }
 
@@ -57,12 +54,13 @@ public class CustomDepositItemReader implements ItemReader<List<DepositDto>> {
         currentPage++;
 
 
-        return result.getResult().getBaseList().stream().map(depositInfo ->{
+        return result.getResult().getBaseList().stream().map(depositInfo -> {
 
             List<DepositOptionDto> depositOptionDtos = new ArrayList<>();
 
             result.getResult().getOptionList().stream().forEach(depositOptionDto -> {
-                if(depositInfo.isDepositOption(depositOptionDto)){
+                /* 옵션이 존재하는 경우 체크 */
+                if (depositInfo.isDepositOption(depositOptionDto)) {
                     depositOptionDtos.add(depositOptionDto);
                 }
             });
@@ -91,7 +89,5 @@ public class CustomDepositItemReader implements ItemReader<List<DepositDto>> {
                 .flux()
                 .toStream()
                 .findFirst().orElse(null);
-
-
     }
 }
