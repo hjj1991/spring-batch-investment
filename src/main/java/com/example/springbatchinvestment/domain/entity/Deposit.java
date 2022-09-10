@@ -15,8 +15,6 @@ import java.util.List;
 @IdClass(DepositPK.class)
 public class Deposit extends BaseTimeEntity {
 
-
-
     @Id//금융상품코드
     @Column(length = 50)
     private String finPrdtCd;
@@ -59,6 +57,5 @@ public class Deposit extends BaseTimeEntity {
     @OneToMany(mappedBy = "deposit", fetch = FetchType.LAZY)
     @Builder.Default
     private List<DepositOption> depositOptions = new ArrayList<>();
-
 
 }

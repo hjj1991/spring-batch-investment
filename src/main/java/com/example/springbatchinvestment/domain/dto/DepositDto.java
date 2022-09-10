@@ -2,15 +2,12 @@ package com.example.springbatchinvestment.domain.dto;
 
 import com.example.springbatchinvestment.domain.entity.Bank;
 import com.example.springbatchinvestment.domain.entity.Deposit;
-import com.example.springbatchinvestment.domain.entity.DepositOption;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 public class DepositDto {
@@ -34,8 +31,6 @@ public class DepositDto {
     private List<DepositOptionDto> options;
 
     public Deposit toEntity(Bank bank){
-
-//        List<DepositOption> depositOptions = options.stream().map(option -> option.toEntity()).collect(Collectors.toList());
 
         return Deposit.builder()
                 .finPrdtCd(finPrdtCd)

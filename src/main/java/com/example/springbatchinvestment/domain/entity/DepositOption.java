@@ -17,8 +17,6 @@ public class DepositOption extends BaseTimeEntity {
     private Long depositOptionNo;
 
 
-
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns(value = {
             @JoinColumn(name = "finPrdtCd",
@@ -27,8 +25,6 @@ public class DepositOption extends BaseTimeEntity {
                     referencedColumnName = "finCoNo")
     }, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Deposit deposit;
-
-
 
     @Column //저축 금리 [소수점 2자리]
     private double intrRate2;
@@ -42,6 +38,5 @@ public class DepositOption extends BaseTimeEntity {
     private String intrRateType;
     @Column
     private String dclsMonth;
-
 
 }
