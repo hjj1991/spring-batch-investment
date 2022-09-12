@@ -1,6 +1,5 @@
 package com.example.springbatchinvestment.writer;
 
-import com.example.springbatchinvestment.domain.dto.DepositDto;
 import com.example.springbatchinvestment.domain.dto.SavingDto;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
@@ -8,8 +7,9 @@ import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CustomSavingJdbcItemWriter implements ItemWriter<List<SavingDto>> {
 
@@ -23,15 +23,12 @@ public class CustomSavingJdbcItemWriter implements ItemWriter<List<SavingDto>> {
 
     @Override
     public void write(List<? extends List<SavingDto>> items) throws Exception {
-        List<SavingDto> savingDtos = new ArrayList<>();
-
-        for (List<SavingDto> item : items) {
-            savingDtos.addAll(item);
-        }
+        List<SavingDto> savingDtos = items.stream().flatMap(Collection::stream).collect(Collectors.toList());
 
 
         String sql = "INSERT INTO tb_saving (fin_co_no, fin_prdt_cd, dcls_end_day, dcls_month, dcls_strt_day, enable, etc_note, fin_co_subm_day, fin_prdt_nm, " +
-                "join_deny, join_member, join_way, kor_co_nm, max_limit, mtrt_int, spcl_cnd, created_date, last_modified_date) values (:finCoNo, :finPrdtCd, :dclsEndDay, :dclsMonth, :dclsStrtDay, " +
+                "join_deny, join_member, join_way, kor_co_nm, max_limit, mtrt_int, spcl_cnd, created_date, last_modified_date) values " +
+                "(:finCoNo, :finPrdtCd, :dclsEndDay, :dclsMonth, :dclsStrtDay, " +
                 "1, :etcNote, :finCoSubmDay, :finPrdtNm, :joinDeny, :joinMember, :joinWay, :korCoNm, :maxLimit, :mtrtInt, :spclCnd, now(), now()) " +
                 "ON DUPLICATE KEY UPDATE " +
                 "dcls_end_day = :dclsEndDay," +

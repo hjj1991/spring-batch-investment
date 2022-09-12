@@ -1,7 +1,5 @@
 package com.example.springbatchinvestment.writer;
 
-import com.example.springbatchinvestment.domain.dto.DepositDto;
-import com.example.springbatchinvestment.domain.dto.DepositOptionDto;
 import com.example.springbatchinvestment.domain.dto.SavingDto;
 import com.example.springbatchinvestment.domain.dto.SavingOptionDto;
 import org.springframework.batch.item.ItemWriter;
@@ -10,8 +8,9 @@ import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CustomSavingOptionJdbcItemWriter implements ItemWriter<List<SavingDto>> {
 
@@ -25,16 +24,9 @@ public class CustomSavingOptionJdbcItemWriter implements ItemWriter<List<SavingD
 
     @Override
     public void write(List<? extends List<SavingDto>> items) throws Exception {
-        List<SavingDto> savingDtos = new ArrayList<>();
-        for (List<SavingDto> item : items) {
-            savingDtos.addAll(item);
-        }
 
-        List<SavingOptionDto> savingOptionDtos = new ArrayList<>();
-
-
-        savingDtos.stream().forEach(savingDto -> savingOptionDtos.addAll(savingDto.getOptions()));
-
+        List<SavingOptionDto> savingOptionDtos = items.stream().flatMap(Collection::stream).map(SavingDto::getOptions)
+                .flatMap(Collection::stream).collect(Collectors.toList());
 
 
         String sql = "INSERT INTO tb_saving_option " +

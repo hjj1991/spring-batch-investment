@@ -2,6 +2,7 @@ package com.example.springbatchinvestment.writer;
 
 import org.springframework.batch.item.database.JpaItemWriter;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,6 @@ public class JpaItemListWriter<T> extends JpaItemWriter<List<T>> {
 
     @Override
     public void write(List<? extends List<T>> items) {
-        jpaItemWriter.write(items.stream().flatMap(innerArray -> innerArray.stream()).collect(Collectors.toList()));
+        jpaItemWriter.write(items.stream().flatMap(Collection::stream).collect(Collectors.toList()));
     }
 }
