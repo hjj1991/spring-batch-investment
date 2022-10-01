@@ -1,10 +1,7 @@
 package com.example.springbatchinvestment.reader;
 
-import com.example.springbatchinvestment.domain.dto.DepositDto;
-import com.example.springbatchinvestment.domain.dto.DepositOptionDto;
 import com.example.springbatchinvestment.domain.dto.SavingDto;
 import com.example.springbatchinvestment.domain.dto.SavingOptionDto;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.NonTransientResourceException;
@@ -22,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class CustomSavingItemReader implements ItemReader<List<SavingDto>> {
 
-    public CustomSavingItemReader(WebClient webClient, ModelMapper modelMapper){
+    public CustomSavingItemReader(WebClient webClient, ModelMapper modelMapper) {
         this.webClient = webClient;
         this.modelMapper = modelMapper;
     }

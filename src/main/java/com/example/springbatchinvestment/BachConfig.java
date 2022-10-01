@@ -4,9 +4,7 @@ import com.example.springbatchinvestment.domain.dto.BankDto;
 import com.example.springbatchinvestment.domain.dto.DepositDto;
 import com.example.springbatchinvestment.domain.dto.SavingDto;
 import com.example.springbatchinvestment.domain.entity.Bank;
-import com.example.springbatchinvestment.domain.entity.Deposit;
 import com.example.springbatchinvestment.domain.entity.DepositOption;
-import com.example.springbatchinvestment.domain.entity.Saving;
 import com.example.springbatchinvestment.processor.CustomBankItemProcessor;
 import com.example.springbatchinvestment.reader.CustomBankItemReader;
 import com.example.springbatchinvestment.reader.CustomDepositItemReader;
@@ -19,7 +17,6 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
@@ -75,15 +72,15 @@ public class BachConfig {
     public Job savingSyncJob(){
         return jobBuilderFactory.get("savingSyncJob")
                 .incrementer(new RunIdIncrementer())
-                .start(savingInitStep())
-                .next(savingSyncStep())
+                .start(savingInitStep())    /* 기존 적금목록들의 사용여부를 0으로 바꿔주는 Step */
+                .next(savingSyncStep())     /* 금융감독원 OPEN API를 이용하여 동기화하는 Step */
                 .build();
     }
 
     @Bean
     public Step savingSyncStep() {
         return stepBuilderFactory.get("savingSyncStep")
-                .<List<SavingDto>, List<Saving>>chunk(1)
+                .<List<SavingDto>, List<SavingDto>>chunk(1)
                 .reader(savingItemReader())
                 .writer(compositeSavingItemWriter())
                 .build();
@@ -150,7 +147,7 @@ public class BachConfig {
     @Bean
     public Step depositSyncStep(){
         return stepBuilderFactory.get("depositSyncStep")
-                .<List<DepositDto>, List<Deposit>>chunk(1)
+                .<List<DepositDto>, List<DepositDto>>chunk(1)
                 .reader(depositItemReader())
                 .writer(compositeDepositItemWriter())
                 .build();

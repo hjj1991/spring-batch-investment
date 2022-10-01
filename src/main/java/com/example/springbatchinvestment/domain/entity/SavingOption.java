@@ -17,8 +17,6 @@ public class SavingOption extends BaseTimeEntity {
     private Long savingOptionNo;
 
 
-
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns(value = {
             @JoinColumn(name = "finPrdtCd",

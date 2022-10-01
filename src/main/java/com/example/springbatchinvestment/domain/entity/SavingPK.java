@@ -1,5 +1,6 @@
 package com.example.springbatchinvestment.domain.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
@@ -7,6 +8,7 @@ import java.io.Serializable;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
+@AllArgsConstructor
 public class SavingPK implements Serializable {
 
 
@@ -17,8 +19,4 @@ public class SavingPK implements Serializable {
     @EqualsAndHashCode.Include
     private String finPrdtCd;
 
-    public SavingPK(String finCoNo, String finPrdtCd) {
-        this.bank = finCoNo;
-        this.finPrdtCd = finPrdtCd;
-    }
 }
