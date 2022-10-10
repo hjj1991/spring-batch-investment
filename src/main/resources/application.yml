@@ -6,7 +6,7 @@ spring:
     include: oauth
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         jdbc:
@@ -55,7 +55,7 @@ spring:
       on-profile: prod
   datasource:
     hikari:
-      driver-class-name: com.mysql.cj.jdbc.Driver
+      driver-class-name: org.mariadb.jdbc.Driver
       jdbc-url: jdbc:mariadb://${DBHOST}:${DBPORT}/api_server?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf-8
       username: root
       password: ${DBPW}
