@@ -1,5 +1,8 @@
 package com.example.springbatchinvestment.domain;
 
+import lombok.Getter;
+
+@Getter
 public enum JoinRestriction {
     NO_RESTRICTION(1, "제한없음"),
     LOW_INCOME_ONLY(2, "서민전용"),
@@ -11,14 +14,6 @@ public enum JoinRestriction {
     JoinRestriction(int code, String description) {
         this.code = code;
         this.description = description;
-    }
-
-    public int getCode() {
-        return this.code;
-    }
-
-    public String getDescription() {
-        return this.description;
     }
 
     @Override

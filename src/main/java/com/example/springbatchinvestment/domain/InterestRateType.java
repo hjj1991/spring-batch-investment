@@ -1,5 +1,8 @@
 package com.example.springbatchinvestment.domain;
 
+import lombok.Getter;
+
+@Getter
 public enum InterestRateType {
     SIMPLE("S", "단리"),
     COMPOUND("M", "복리");
@@ -10,14 +13,6 @@ public enum InterestRateType {
     InterestRateType(String code, String description) {
         this.code = code;
         this.description = description;
-    }
-
-    public String getCode() {
-        return this.code;
-    }
-
-    public String getDescription() {
-        return this.description;
     }
 
     public static InterestRateType fromCode(String code) {

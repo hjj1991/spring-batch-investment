@@ -21,7 +21,7 @@ public class FinancialCompanyItemReader implements ItemStreamReader<Company> {
 
     private final FssClient fssClient;
     private int currentPage = 1;
-    private Optional<Long> currentMaxPage = Optional.empty();
+    private Long currentMaxPage = null;
     private FinancialGroupType currentFinancialGroupType = FinancialGroupType.BANK;
     private List<Company> currentPageItems = null;
     private int nextIndexItem = 0;
@@ -79,21 +79,21 @@ public class FinancialCompanyItemReader implements ItemStreamReader<Company> {
         log.info("Switching to next financial group: {}", FinancialGroupType.SAVING_BANK);
         this.currentFinancialGroupType = FinancialGroupType.SAVING_BANK;
         this.currentPage = 1;  // Start from page 1 for the new financial group type
-        this.currentMaxPage = Optional.empty();
+        this.currentMaxPage = null;
         this.currentPageItems = null;  // Clear current page items
         this.nextIndexItem = 0;  // Reset index for new financial group
     }
 
     private boolean shouldNextPage() {
-        return this.currentMaxPage.isPresent() && this.currentPage <= this.currentMaxPage.get().intValue();
+        return this.currentMaxPage != null && this.currentPage <= this.currentMaxPage;
     }
 
     private boolean shouldSwitchToNextFinancialGroup() {
-        return this.currentMaxPage.isPresent() && this.currentPage > this.currentMaxPage.get() && this.currentFinancialGroupType.equals(FinancialGroupType.BANK);
+        return this.currentMaxPage != null && this.currentPage > this.currentMaxPage && this.currentFinancialGroupType.equals(FinancialGroupType.BANK);
     }
 
     private boolean shouldEndFinancialSync() {
-        return this.currentMaxPage.isPresent() && this.currentFinancialGroupType.equals(FinancialGroupType.SAVING_BANK) && this.currentPage > this.currentMaxPage.get();
+        return this.currentMaxPage != null && this.currentFinancialGroupType.equals(FinancialGroupType.SAVING_BANK) && this.currentPage > this.currentMaxPage;
     }
 
     private void fetchData() {
