@@ -14,15 +14,15 @@ public enum JoinRestriction {
     }
 
     public int getCode() {
-        return code;
+        return this.code;
     }
 
     public String getDescription() {
-        return description;
+        return this.description;
     }
 
     @Override
     public String toString() {
-        return code + ": " + description;
+        return this.code + ": " + this.description;
     }
 }

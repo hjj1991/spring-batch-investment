@@ -2,7 +2,7 @@ package com.example.springbatchinvestment.client.dto;
 
 import java.util.Objects;
 
-public record FssResponse<T extends Result>(
+public record FssResponse<T extends Result<?, ?>>(
     T result
 ) {
 

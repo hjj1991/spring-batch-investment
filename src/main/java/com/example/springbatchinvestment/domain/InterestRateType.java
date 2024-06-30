@@ -13,11 +13,11 @@ public enum InterestRateType {
     }
 
     public String getCode() {
-        return code;
+        return this.code;
     }
 
     public String getDescription() {
-        return description;
+        return this.description;
     }
 
     public static InterestRateType fromCode(String code) {
