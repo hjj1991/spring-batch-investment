@@ -1,12 +1,11 @@
 package com.example.springbatchinvestment.domain.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
-
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
 
 @MappedSuperclass
 @Getter

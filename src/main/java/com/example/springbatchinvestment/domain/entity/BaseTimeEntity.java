@@ -1,27 +1,29 @@
 package com.example.springbatchinvestment.domain.entity;
 
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.Column;
-import javax.persistence.EntityListeners;
-import javax.persistence.MappedSuperclass;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.ZonedDateTime;
 
-@EntityListeners(AuditingEntityListener.class)
-@MappedSuperclass
 @Getter
 @Setter
-public class BaseTimeEntity {
+@MappedSuperclass
+public abstract class BaseTimeEntity {
+    private ZonedDateTime createdAt;
+    private ZonedDateTime modifiedAt;
 
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdDate;
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = ZonedDateTime.now(Clock.systemUTC());
+        this.modifiedAt = ZonedDateTime.now(Clock.systemUTC());
+    }
 
-    @Column
-    @LastModifiedDate
-    private LocalDateTime lastModifiedDate;
+    @PreUpdate
+    public void preUpdate() {
+        this.modifiedAt = ZonedDateTime.now(Clock.systemUTC());
+    }
 }
