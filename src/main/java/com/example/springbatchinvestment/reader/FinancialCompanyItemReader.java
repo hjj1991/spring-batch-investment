@@ -53,7 +53,7 @@ public class FinancialCompanyItemReader implements ItemStreamReader<Company> {
             } else {
                 this.fetchData();
             }
-            if(this.shouldNextPage()) {
+            if (this.shouldNextPage()) {
                 this.currentPage++;
             }
         }

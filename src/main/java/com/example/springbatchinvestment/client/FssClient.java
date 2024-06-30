@@ -66,7 +66,7 @@ public class FssClient {
                 5000
         ).doOnConnected(connection -> connection.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS)));
 
-        webClient = WebClient.builder()
+        this.webClient = WebClient.builder()
                 .baseUrl(baseUrl)
                 .exchangeStrategies(exchangeStrategies)
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
@@ -75,11 +75,11 @@ public class FssClient {
 
     public FssResponse<CompanyResult> getCompanies(final String topFinGrpNo, final String pageNo, final Optional<String> financeCd) {
         final String getCompaniesUri = UriComponentsBuilder.fromPath(GET_COMPANIES_PATH)
-                .queryParam("auth", auth)
+                .queryParam("auth", this.auth)
                 .queryParam("topFinGrpNo", topFinGrpNo)
                 .queryParam("pageNo", pageNo)
                 .queryParamIfPresent("financeCd", financeCd).build().toUriString();
-        return webClient.get()
+        return this.webClient.get()
                 .uri(getCompaniesUri)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
@@ -115,17 +115,17 @@ public class FssClient {
 
     public FssResponse<DepositResult> getDeposits(final String topFinGrpNo, final String pageNo, final Optional<String> financeCd) {
         final String getDepositsUri = UriComponentsBuilder.fromPath(GET_DEPOSITS_PATH)
-               .queryParam("auth", auth)
-               .queryParam("topFinGrpNo", topFinGrpNo)
-               .queryParam("pageNo", pageNo)
-               .queryParamIfPresent("financeCd", financeCd).build().toUriString();
-        return webClient.get()
-               .uri(getDepositsUri)
-               .accept(MediaType.APPLICATION_JSON)
-               .retrieve()
-               .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new FssClientError()))
-               .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new FssClientError()))
-               .bodyToMono(new ParameterizedTypeReference<FssResponse<DepositResult>>() {
+                .queryParam("auth", this.auth)
+                .queryParam("topFinGrpNo", topFinGrpNo)
+                .queryParam("pageNo", pageNo)
+                .queryParamIfPresent("financeCd", financeCd).build().toUriString();
+        return this.webClient.get()
+                .uri(getDepositsUri)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new FssClientError()))
+                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new FssClientError()))
+                .bodyToMono(new ParameterizedTypeReference<FssResponse<DepositResult>>() {
                 })
                 .onErrorResume(throwable -> {
                     if (throwable instanceof WebClientRequestException && (throwable.getCause() instanceof ReadTimeoutException || throwable.getCause() instanceof ConnectTimeoutException)) {
@@ -155,11 +155,11 @@ public class FssClient {
 
     public FssResponse<SavingResult> getSavings(final String topFinGrpNo, final String pageNo, final Optional<String> financeCd) {
         final String getSavingsUri = UriComponentsBuilder.fromPath(GET_SAVINGS_PATH)
-                .queryParam("auth", auth)
+                .queryParam("auth", this.auth)
                 .queryParam("topFinGrpNo", topFinGrpNo)
                 .queryParam("pageNo", pageNo)
                 .queryParamIfPresent("financeCd", financeCd).build().toUriString();
-        return webClient.get()
+        return this.webClient.get()
                 .uri(getSavingsUri)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
@@ -192,7 +192,6 @@ public class FssClient {
                 })
                 .block();
     }
-
 
 
 }

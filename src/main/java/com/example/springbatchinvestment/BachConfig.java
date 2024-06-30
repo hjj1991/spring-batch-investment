@@ -1,7 +1,6 @@
 package com.example.springbatchinvestment;
 
 import com.example.springbatchinvestment.client.dto.Company;
-import com.example.springbatchinvestment.listener.ExecutionContextStepListener;
 import com.example.springbatchinvestment.reader.FinancialCompanyItemReader;
 import com.example.springbatchinvestment.repository.FinancialCompanyRepository;
 import com.example.springbatchinvestment.writer.FinancialCompanyItemWriter;

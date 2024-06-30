@@ -1,8 +1,6 @@
 package com.example.springbatchinvestment.client.dto;
 
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
 
 import java.util.List;
 import java.util.Optional;

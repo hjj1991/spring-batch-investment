@@ -1,6 +1,9 @@
 package com.example.springbatchinvestment.client.fixture;
 
-import com.example.springbatchinvestment.client.dto.*;
+import com.example.springbatchinvestment.client.dto.Company;
+import com.example.springbatchinvestment.client.dto.CompanyArea;
+import com.example.springbatchinvestment.client.dto.CompanyResult;
+import com.example.springbatchinvestment.client.dto.FssResponse;
 
 import java.util.List;
 import java.util.Optional;
