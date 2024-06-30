@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 
 @EnableJpaAuditing
-@EnableBatchProcessing
 @SpringBootApplication
 public class SpringBatchInvestmentApplication {
 
@@ -17,8 +16,4 @@ public class SpringBatchInvestmentApplication {
                 .exit(SpringApplication.run(SpringBatchInvestmentApplication.class, args)));
 //        SpringApplication.run(SpringBatchInvestmentApplication.class, args);
     }
-
-
-
-
 }
