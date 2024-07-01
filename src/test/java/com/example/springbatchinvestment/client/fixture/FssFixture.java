@@ -5,7 +5,6 @@ import com.example.springbatchinvestment.client.dto.CompanyArea;
 import com.example.springbatchinvestment.client.dto.CompanyResult;
 import com.example.springbatchinvestment.client.dto.FssResponse;
 import java.util.List;
-import java.util.Optional;
 
 public class FssFixture {
 
@@ -15,8 +14,8 @@ public class FssFixture {
                         "000",
                         "정상",
                         2L,
-                        Optional.of(1L),
-                        Optional.of(1L),
+                        1L,
+                        1L,
                         List.of(
                                 new Company(
                                         "202406",

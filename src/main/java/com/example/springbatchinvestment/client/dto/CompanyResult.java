@@ -1,9 +1,11 @@
 package com.example.springbatchinvestment.client.dto;
 
 import java.util.List;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @ToString(callSuper = true)
+@EqualsAndHashCode
 public class CompanyResult extends Result<Company, CompanyArea> {
     public CompanyResult(
             final String errCd,
