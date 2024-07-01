@@ -26,16 +26,19 @@ public class BachConfig {
     private final JobRepository jobRepository;
     private final PlatformTransactionManager platformTransactionManager;
     private final FinancialCompanyRepository financialCompanyRepository;
+
     @Value(value = "${api.fss.base-url}")
     private String baseUrl;
+
     @Value(value = "${api.fss.auth-key}")
     private String authKey;
 
     @Bean(name = FINANCIAL_COMPANY_SYNC_JOB_NAME)
-    public Job financialSyncJob(){
+    public Job financialSyncJob() {
         return new JobBuilder(FINANCIAL_COMPANY_SYNC_JOB_NAME, this.jobRepository)
-                .incrementer(new RunIdIncrementer())    /* 여러번 호출할 수 있도록 RunIdIncrementer 메서드를 사용하여 중복되지 않게 실행 */
-                .start(this.financialSyncStep())                  /* 기존 은행목록들의 사용여부를 0으로 바꿔주는 Step */
+                .incrementer(
+                        new RunIdIncrementer()) /* 여러번 호출할 수 있도록 RunIdIncrementer 메서드를 사용하여 중복되지 않게 실행 */
+                .start(this.financialSyncStep()) /* 기존 은행목록들의 사용여부를 0으로 바꿔주는 Step */
                 .build();
     }
 
@@ -47,5 +50,4 @@ public class BachConfig {
                 .writer(new FinancialCompanyItemWriter(this.financialCompanyRepository))
                 .build();
     }
-
 }

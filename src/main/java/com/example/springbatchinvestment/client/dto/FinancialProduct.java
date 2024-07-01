@@ -17,6 +17,4 @@ public record FinancialProduct(
         Optional<String> maxLimit,
         String dclsStrtDay,
         Optional<String> dclsEndDay,
-        String finCoSubmDay
-) {
-}
+        String finCoSubmDay) {}

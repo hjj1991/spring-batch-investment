@@ -21,8 +21,7 @@ public class FinancialProductEntity extends BaseTimeEntity {
     @Column(length = 20, unique = true)
     private String financialProductCode;
 
-    @NotNull
-    private String financialProductName;
+    @NotNull private String financialProductName;
 
     private String joinWay;
 
@@ -34,11 +33,9 @@ public class FinancialProductEntity extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private JoinRestriction joinRestriction;
 
-    @NotNull
-    private String joinMember;
+    @NotNull private String joinMember;
 
-    @NotNull
-    private String additionalNotes;
+    @NotNull private String additionalNotes;
 
     private Long maxLimit;
 
@@ -51,5 +48,4 @@ public class FinancialProductEntity extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "financialCompanyId", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private FinancialCompanyEntity financialCompanyEntity;
-
 }

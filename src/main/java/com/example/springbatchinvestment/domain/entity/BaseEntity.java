@@ -12,13 +12,9 @@ import org.springframework.data.annotation.LastModifiedBy;
 @Setter
 public abstract class BaseEntity extends BaseTimeEntity {
 
-
     @CreatedBy
     @Column(updatable = false)
     private Long createdBy;
 
-    @Column
-    @LastModifiedBy
-    private Long lastModifiedBy;
-
+    @Column @LastModifiedBy private Long lastModifiedBy;
 }

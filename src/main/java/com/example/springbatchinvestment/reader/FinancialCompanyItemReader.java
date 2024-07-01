@@ -6,11 +6,10 @@ import com.example.springbatchinvestment.client.dto.CompanyResult;
 import com.example.springbatchinvestment.client.dto.FssResponse;
 import com.example.springbatchinvestment.client.error.FssClientError;
 import com.example.springbatchinvestment.domain.FinancialGroupType;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.item.*;
-
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.item.*;
 
 @Slf4j
 public class FinancialCompanyItemReader implements ItemStreamReader<Company> {
@@ -29,21 +28,24 @@ public class FinancialCompanyItemReader implements ItemStreamReader<Company> {
     @Override
     public void open(ExecutionContext executionContext) throws ItemStreamException {
         this.currentPage = executionContext.getInt("currentPage", 1);
-        this.currentFinancialGroupType = FinancialGroupType.fromCode(executionContext.getString("currentFinancialGroupCode", FinancialGroupType.BANK.getFinancialGroupCode()));
+        this.currentFinancialGroupType =
+                FinancialGroupType.fromCode(
+                        executionContext.getString(
+                                "currentFinancialGroupCode", FinancialGroupType.BANK.getFinancialGroupCode()));
         this.nextIndexItem = executionContext.getInt("nextIndexItem", 0);
-
     }
 
     @Override
     public void update(ExecutionContext executionContext) throws ItemStreamException {
         executionContext.putInt("currentPage", this.currentPage);
-        executionContext.putString("currentFinancialGroupCode", this.currentFinancialGroupType.getFinancialGroupCode());
+        executionContext.putString(
+                "currentFinancialGroupCode", this.currentFinancialGroupType.getFinancialGroupCode());
         executionContext.putInt("nextIndexItem", this.nextIndexItem);
     }
 
-
     @Override
-    public Company read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
+    public Company read()
+            throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
         if (this.currentPageItems == null || this.nextIndexItem >= this.currentPageItems.size()) {
             if (this.shouldSwitchToNextFinancialGroup()) {
                 this.switchToNextFinancialGroup();
@@ -68,8 +70,7 @@ public class FinancialCompanyItemReader implements ItemStreamReader<Company> {
                     company.dclsChrgMan(),
                     company.hompUrl(),
                     company.calTel(),
-                    this.currentFinancialGroupType
-            );
+                    this.currentFinancialGroupType);
         }
 
         return null;
@@ -78,10 +79,10 @@ public class FinancialCompanyItemReader implements ItemStreamReader<Company> {
     private void switchToNextFinancialGroup() {
         log.info("Switching to next financial group: {}", FinancialGroupType.SAVING_BANK);
         this.currentFinancialGroupType = FinancialGroupType.SAVING_BANK;
-        this.currentPage = 1;  // Start from page 1 for the new financial group type
+        this.currentPage = 1; // Start from page 1 for the new financial group type
         this.currentMaxPage = null;
-        this.currentPageItems = null;  // Clear current page items
-        this.nextIndexItem = 0;  // Reset index for new financial group
+        this.currentPageItems = null; // Clear current page items
+        this.nextIndexItem = 0; // Reset index for new financial group
     }
 
     private boolean shouldNextPage() {
@@ -89,18 +90,33 @@ public class FinancialCompanyItemReader implements ItemStreamReader<Company> {
     }
 
     private boolean shouldSwitchToNextFinancialGroup() {
-        return this.currentMaxPage != null && this.currentPage > this.currentMaxPage && this.currentFinancialGroupType.equals(FinancialGroupType.BANK);
+        return this.currentMaxPage != null
+                && this.currentPage > this.currentMaxPage
+                && this.currentFinancialGroupType.equals(FinancialGroupType.BANK);
     }
 
     private boolean shouldEndFinancialSync() {
-        return this.currentMaxPage != null && this.currentFinancialGroupType.equals(FinancialGroupType.SAVING_BANK) && this.currentPage > this.currentMaxPage;
+        return this.currentMaxPage != null
+                && this.currentFinancialGroupType.equals(FinancialGroupType.SAVING_BANK)
+                && this.currentPage > this.currentMaxPage;
     }
 
     private void fetchData() {
-        log.info("Fetching data for page {} of financial group {}", this.currentPage, this.currentFinancialGroupType);
-        FssResponse<CompanyResult> resultFssResponse = this.fssClient.getCompanies(this.currentFinancialGroupType.getFinancialGroupCode(), String.valueOf(this.currentPage), Optional.empty());
+        log.info(
+                "Fetching data for page {} of financial group {}",
+                this.currentPage,
+                this.currentFinancialGroupType);
+        FssResponse<CompanyResult> resultFssResponse =
+                this.fssClient.getCompanies(
+                        this.currentFinancialGroupType.getFinancialGroupCode(),
+                        String.valueOf(this.currentPage),
+                        Optional.empty());
         if (resultFssResponse.isSuccess()) {
-            log.info("Fetched resultFssResponse: {} items from page {} of financial group {}", resultFssResponse, this.currentPage, this.currentFinancialGroupType);
+            log.info(
+                    "Fetched resultFssResponse: {} items from page {} of financial group {}",
+                    resultFssResponse,
+                    this.currentPage,
+                    this.currentFinancialGroupType);
             this.currentPageItems = resultFssResponse.result().getBaseList();
             this.currentMaxPage = resultFssResponse.result().getMaxPageNo();
         } else {

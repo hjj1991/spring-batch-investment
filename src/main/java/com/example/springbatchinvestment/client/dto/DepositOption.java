@@ -8,6 +8,4 @@ public record DepositOption(
         String intrRateTypeNm,
         String saveTrm,
         Double intrRate,
-        Double intrRate2
-) {
-}
+        Double intrRate2) {}

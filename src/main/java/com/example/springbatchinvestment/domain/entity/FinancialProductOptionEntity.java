@@ -4,9 +4,8 @@ import com.example.springbatchinvestment.domain.InterestRateType;
 import com.example.springbatchinvestment.domain.ReserveType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
-
 import java.math.BigDecimal;
+import lombok.*;
 
 @Entity
 @Getter
@@ -27,8 +26,7 @@ public class FinancialProductOptionEntity extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private ReserveType reserveType;
 
-    @NotNull
-    private String depositPeriodMonths;
+    @NotNull private String depositPeriodMonths;
 
     @NotNull
     @Column(precision = 5, scale = 2)
@@ -41,5 +39,4 @@ public class FinancialProductOptionEntity extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "financialProductId", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private FinancialProductEntity financialProductEntity;
-
 }

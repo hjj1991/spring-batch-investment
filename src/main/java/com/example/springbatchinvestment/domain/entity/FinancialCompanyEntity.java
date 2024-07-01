@@ -25,11 +25,9 @@ public class FinancialCompanyEntity extends BaseTimeEntity {
     @Column(length = 20, unique = true)
     private String financialCompanyCode;
 
-    @NotNull
-    private String dclsMonth;
+    @NotNull private String dclsMonth;
 
-    @NotNull
-    private String companyName;
+    @NotNull private String companyName;
 
     private String dclsChrgMan;
 
@@ -48,5 +46,4 @@ public class FinancialCompanyEntity extends BaseTimeEntity {
         this.hompUrl = company.hompUrl();
         this.calTel = company.calTel();
     }
-
 }

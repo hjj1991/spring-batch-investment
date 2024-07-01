@@ -4,10 +4,9 @@ import com.example.springbatchinvestment.client.dto.Company;
 import com.example.springbatchinvestment.domain.entity.FinancialCompanyEntity;
 import com.example.springbatchinvestment.repository.FinancialCompanyRepository;
 import jakarta.transaction.Transactional;
+import java.util.Optional;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
-
-import java.util.Optional;
 
 public class FinancialCompanyItemWriter implements ItemWriter<Company> {
 
@@ -20,23 +19,28 @@ public class FinancialCompanyItemWriter implements ItemWriter<Company> {
     @Override
     @Transactional
     public void write(Chunk<? extends Company> chunk) throws Exception {
-        chunk.getItems().forEach(company -> {
-            Optional<FinancialCompanyEntity> optionalFinancialCompanyEntity = this.financialCompanyRepository.findByFinancialCompanyCode(company.finCoNo());
+        chunk
+                .getItems()
+                .forEach(
+                        company -> {
+                            Optional<FinancialCompanyEntity> optionalFinancialCompanyEntity =
+                                    this.financialCompanyRepository.findByFinancialCompanyCode(company.finCoNo());
 
-            if (optionalFinancialCompanyEntity.isPresent()) {
-                optionalFinancialCompanyEntity.get().updateByCompany(company);
-            }else{
-                FinancialCompanyEntity financialCompanyEntity = FinancialCompanyEntity.builder()
-                       .financialCompanyCode(company.finCoNo())
-                       .dclsMonth(company.dclsMonth())
-                       .companyName(company.korCoNm())
-                       .dclsChrgMan(company.dclsChrgMan())
-                       .hompUrl(company.hompUrl())
-                       .calTel(company.calTel())
-                       .financialGroupType(company.financialGroupType())
-                       .build();
-                this.financialCompanyRepository.save(financialCompanyEntity);
-            }
-        });
+                            if (optionalFinancialCompanyEntity.isPresent()) {
+                                optionalFinancialCompanyEntity.get().updateByCompany(company);
+                            } else {
+                                FinancialCompanyEntity financialCompanyEntity =
+                                        FinancialCompanyEntity.builder()
+                                                .financialCompanyCode(company.finCoNo())
+                                                .dclsMonth(company.dclsMonth())
+                                                .companyName(company.korCoNm())
+                                                .dclsChrgMan(company.dclsChrgMan())
+                                                .hompUrl(company.hompUrl())
+                                                .calTel(company.calTel())
+                                                .financialGroupType(company.financialGroupType())
+                                                .build();
+                                this.financialCompanyRepository.save(financialCompanyEntity);
+                            }
+                        });
     }
 }

@@ -9,6 +9,4 @@ public record Company(
         String dclsChrgMan,
         String hompUrl,
         String calTel,
-        FinancialGroupType financialGroupType
-) {
-}
+        FinancialGroupType financialGroupType) {}

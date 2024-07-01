@@ -10,6 +10,4 @@ public record SavingOption(
         String rsrvTypeNm,
         String saveTrm,
         Double intrRate,
-        Double intrRate2
-) {
-}
+        Double intrRate2) {}
