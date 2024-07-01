@@ -40,14 +40,12 @@ import reactor.util.retry.Retry;
 public class FssClient {
     private final WebClient webClient;
     private final String auth;
-    private final String baseUrl;
     private static final String GET_COMPANIES_PATH = "/finlifeapi/companySearch.json";
     private static final String GET_DEPOSITS_PATH = "/finlifeapi/depositProductsSearch.json";
     private static final String GET_SAVINGS_PATH = "/finlifeapi/savingProductsSearch.json";
 
     public FssClient(String baseUrl, String auth) {
         this.auth = auth;
-        this.baseUrl = baseUrl;
         ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         objectMapper.registerModule(new JavaTimeModule());
