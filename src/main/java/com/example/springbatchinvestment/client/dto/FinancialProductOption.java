@@ -1,6 +1,6 @@
 package com.example.springbatchinvestment.client.dto;
 
-public record SavingOption(
+public record FinancialProductOption(
         String dclsMonth,
         String finCoNo,
         String finPrdtCd,

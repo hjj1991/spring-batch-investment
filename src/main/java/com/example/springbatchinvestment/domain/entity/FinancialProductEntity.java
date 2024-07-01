@@ -1,5 +1,6 @@
 package com.example.springbatchinvestment.domain.entity;
 
+import com.example.springbatchinvestment.domain.FinancialProductType;
 import com.example.springbatchinvestment.domain.JoinRestriction;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -32,6 +33,10 @@ public class FinancialProductEntity extends BaseTimeEntity {
     @NotNull
     @Enumerated(EnumType.STRING)
     private JoinRestriction joinRestriction;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private FinancialProductType financialProductType;
 
     @NotNull private String joinMember;
 

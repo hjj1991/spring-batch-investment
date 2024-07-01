@@ -1,11 +1,11 @@
 package com.example.springbatchinvestment.client;
 
 import com.example.springbatchinvestment.client.dto.CompanyResult;
-import com.example.springbatchinvestment.client.dto.DepositResult;
+import com.example.springbatchinvestment.client.dto.FinancialProductResult;
 import com.example.springbatchinvestment.client.dto.FssResponse;
-import com.example.springbatchinvestment.client.dto.SavingResult;
 import com.example.springbatchinvestment.client.error.FssClientError;
 import com.example.springbatchinvestment.client.error.FssUnavailableError;
+import com.example.springbatchinvestment.domain.FinancialProductType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -83,13 +83,13 @@ public class FssClient {
     }
 
     public FssResponse<CompanyResult> getCompanies(
-            final String topFinGrpNo, final String pageNo, final Optional<String> financeCd) {
+            final String topFinGrpNo, final String pageNo, final String financeCd) {
         final String getCompaniesUri =
                 UriComponentsBuilder.fromPath(GET_COMPANIES_PATH)
                         .queryParam("auth", this.auth)
                         .queryParam("topFinGrpNo", topFinGrpNo)
                         .queryParam("pageNo", pageNo)
-                        .queryParamIfPresent("financeCd", financeCd)
+                        .queryParamIfPresent("financeCd", Optional.ofNullable(financeCd))
                         .build()
                         .toUriString();
         return this.webClient
@@ -142,26 +142,30 @@ public class FssClient {
                 .block();
     }
 
-    public FssResponse<DepositResult> getDeposits(
-            final String topFinGrpNo, final String pageNo, final Optional<String> financeCd) {
-        final String getDepositsUri =
-                UriComponentsBuilder.fromPath(GET_DEPOSITS_PATH)
+    public FssResponse<FinancialProductResult> getFinancialProducts(
+            final String topFinGrpNo,
+            final String pageNo,
+            final String financeCd,
+            final FinancialProductType financialProductType) {
+
+        final String getFinancialProductsUri =
+                UriComponentsBuilder.fromPath(this.getFinancialProductsUri(financialProductType))
                         .queryParam("auth", this.auth)
                         .queryParam("topFinGrpNo", topFinGrpNo)
                         .queryParam("pageNo", pageNo)
-                        .queryParamIfPresent("financeCd", financeCd)
+                        .queryParamIfPresent("financeCd", Optional.ofNullable(financeCd))
                         .build()
                         .toUriString();
         return this.webClient
                 .get()
-                .uri(getDepositsUri)
+                .uri(getFinancialProductsUri)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .onStatus(
                         HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new FssClientError()))
                 .onStatus(
                         HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new FssClientError()))
-                .bodyToMono(new ParameterizedTypeReference<FssResponse<DepositResult>>() {})
+                .bodyToMono(new ParameterizedTypeReference<FssResponse<FinancialProductResult>>() {})
                 .onErrorResume(
                         throwable -> {
                             if (throwable instanceof WebClientRequestException
@@ -169,14 +173,14 @@ public class FssClient {
                                             || throwable.getCause() instanceof ConnectTimeoutException)) {
                                 log.warn(
                                         "RCV | {} | ReadTimeoutException or ConnectTimeoutException occurred",
-                                        getDepositsUri);
+                                        getFinancialProductsUri);
                                 return Mono.error(FssUnavailableError::new);
                             } else if (ExceptionUtils.getRootCause(throwable)
                                     instanceof PrematureCloseException) {
-                                log.warn("RCV | {} | PrematureCloseException occurred", getDepositsUri);
+                                log.warn("RCV | {} | PrematureCloseException occurred", getFinancialProductsUri);
                                 return Mono.error(FssUnavailableError::new);
                             }
-                            log.error("Error occurred during calling GET {}", getDepositsUri, throwable);
+                            log.error("Error occurred during calling GET {}", getFinancialProductsUri, throwable);
                             return Mono.error(throwable);
                         })
                 .retryWhen(
@@ -185,80 +189,32 @@ public class FssClient {
                                 .doAfterRetry(
                                         retrySignal ->
                                                 log.warn(
-                                                        "SNT | {} | Retrying #{}", getDepositsUri, retrySignal.totalRetries()))
+                                                        "SNT | {} | Retrying #{}",
+                                                        getFinancialProductsUri,
+                                                        retrySignal.totalRetries()))
                                 .onRetryExhaustedThrow(
                                         (retryBackoffSpec, retrySignal) -> {
                                             log.error(
                                                     "RCV | {} | Reached at max retry count {}",
-                                                    getDepositsUri,
+                                                    getFinancialProductsUri,
                                                     retrySignal.totalRetries());
                                             throw new FssUnavailableError();
                                         }))
                 .map(
                         fssResponse -> {
-                            log.info("RCV | {}, | CompanyResponse: {}", getDepositsUri, fssResponse);
+                            log.info(
+                                    "RCV | {}, | FinancialProductsResponse: {}",
+                                    getFinancialProductsUri,
+                                    fssResponse);
                             return fssResponse;
                         })
                 .block();
     }
 
-    public FssResponse<SavingResult> getSavings(
-            final String topFinGrpNo, final String pageNo, final Optional<String> financeCd) {
-        final String getSavingsUri =
-                UriComponentsBuilder.fromPath(GET_SAVINGS_PATH)
-                        .queryParam("auth", this.auth)
-                        .queryParam("topFinGrpNo", topFinGrpNo)
-                        .queryParam("pageNo", pageNo)
-                        .queryParamIfPresent("financeCd", financeCd)
-                        .build()
-                        .toUriString();
-        return this.webClient
-                .get()
-                .uri(getSavingsUri)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .onStatus(
-                        HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new FssClientError()))
-                .onStatus(
-                        HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new FssClientError()))
-                .bodyToMono(new ParameterizedTypeReference<FssResponse<SavingResult>>() {})
-                .onErrorResume(
-                        throwable -> {
-                            if (throwable instanceof WebClientRequestException
-                                    && (throwable.getCause() instanceof ReadTimeoutException
-                                            || throwable.getCause() instanceof ConnectTimeoutException)) {
-                                log.warn(
-                                        "RCV | {} | ReadTimeoutException or ConnectTimeoutException occurred",
-                                        getSavingsUri);
-                                return Mono.error(FssUnavailableError::new);
-                            } else if (ExceptionUtils.getRootCause(throwable)
-                                    instanceof PrematureCloseException) {
-                                log.warn("RCV | {} | PrematureCloseException occurred", getSavingsUri);
-                                return Mono.error(FssUnavailableError::new);
-                            }
-                            log.error("Error occurred during calling GET {}", getSavingsUri, throwable);
-                            return Mono.error(throwable);
-                        })
-                .retryWhen(
-                        Retry.backoff(3, Duration.ofMillis(1000))
-                                .filter(throwable -> throwable instanceof FssUnavailableError)
-                                .doAfterRetry(
-                                        retrySignal ->
-                                                log.warn(
-                                                        "SNT | {} | Retrying #{}", getSavingsUri, retrySignal.totalRetries()))
-                                .onRetryExhaustedThrow(
-                                        (retryBackoffSpec, retrySignal) -> {
-                                            log.error(
-                                                    "RCV | {} | Reached at max retry count {}",
-                                                    getSavingsUri,
-                                                    retrySignal.totalRetries());
-                                            throw new FssUnavailableError();
-                                        }))
-                .map(
-                        fssResponse -> {
-                            log.info("RCV | {}, | CompanyResponse: {}", getSavingsUri, fssResponse);
-                            return fssResponse;
-                        })
-                .block();
+    private String getFinancialProductsUri(FinancialProductType financialProductType) {
+        return switch (financialProductType) {
+            case SAVINGS -> GET_SAVINGS_PATH;
+            case INSTALLMENT_SAVINGS -> GET_DEPOSITS_PATH;
+        };
     }
 }

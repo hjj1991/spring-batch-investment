@@ -3,7 +3,6 @@ package com.example.springbatchinvestment.writer;
 import com.example.springbatchinvestment.client.dto.Company;
 import com.example.springbatchinvestment.domain.entity.FinancialCompanyEntity;
 import com.example.springbatchinvestment.repository.FinancialCompanyRepository;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
@@ -17,7 +16,6 @@ public class FinancialCompanyItemWriter implements ItemWriter<Company> {
     }
 
     @Override
-    @Transactional
     public void write(Chunk<? extends Company> chunk) throws Exception {
         chunk
                 .getItems()
@@ -26,10 +24,12 @@ public class FinancialCompanyItemWriter implements ItemWriter<Company> {
                             Optional<FinancialCompanyEntity> optionalFinancialCompanyEntity =
                                     this.financialCompanyRepository.findByFinancialCompanyCode(company.finCoNo());
 
+                            FinancialCompanyEntity financialCompanyEntity;
                             if (optionalFinancialCompanyEntity.isPresent()) {
-                                optionalFinancialCompanyEntity.get().updateByCompany(company);
+                                financialCompanyEntity = optionalFinancialCompanyEntity.get();
+                                financialCompanyEntity.updateByCompany(company);
                             } else {
-                                FinancialCompanyEntity financialCompanyEntity =
+                                financialCompanyEntity =
                                         FinancialCompanyEntity.builder()
                                                 .financialCompanyCode(company.finCoNo())
                                                 .dclsMonth(company.dclsMonth())
@@ -39,8 +39,8 @@ public class FinancialCompanyItemWriter implements ItemWriter<Company> {
                                                 .calTel(company.calTel())
                                                 .financialGroupType(company.financialGroupType())
                                                 .build();
-                                this.financialCompanyRepository.save(financialCompanyEntity);
                             }
+                            this.financialCompanyRepository.save(financialCompanyEntity);
                         });
     }
 }

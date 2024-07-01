@@ -9,4 +9,16 @@ public record Company(
         String dclsChrgMan,
         String hompUrl,
         String calTel,
-        FinancialGroupType financialGroupType) {}
+        FinancialGroupType financialGroupType) {
+
+    public Company addFinancialGroupType(FinancialGroupType financialGroupType) {
+        return new Company(
+                this.dclsMonth,
+                this.finCoNo,
+                this.korCoNm,
+                this.dclsChrgMan,
+                this.hompUrl,
+                this.calTel,
+                financialGroupType);
+    }
+}

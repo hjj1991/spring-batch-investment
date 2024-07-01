@@ -1,6 +1,6 @@
 package com.example.springbatchinvestment.client.dto;
 
-import java.util.Optional;
+import com.example.springbatchinvestment.domain.FinancialGroupType;
 
 public record FinancialProduct(
         String dclsMonth,
@@ -14,7 +14,29 @@ public record FinancialProduct(
         String joinDeny,
         String joinMember,
         String etcNote,
-        Optional<String> maxLimit,
+        String maxLimit,
         String dclsStrtDay,
-        Optional<String> dclsEndDay,
-        String finCoSubmDay) {}
+        String dclsEndDay,
+        String finCoSubmDay,
+        FinancialGroupType financialGroupType) {
+
+    public FinancialProduct addFinancialGroupType(FinancialGroupType financialGroupType) {
+        return new FinancialProduct(
+                this.dclsMonth,
+                this.finCoNo,
+                this.finPrdtCd,
+                this.korCoNm,
+                this.finPrdtNm,
+                this.joinWay,
+                this.mtrtInt,
+                this.spclCnd,
+                this.joinDeny,
+                this.joinMember,
+                this.etcNote,
+                this.maxLimit,
+                this.dclsStrtDay,
+                this.dclsEndDay,
+                this.finCoSubmDay,
+                financialGroupType);
+    }
+}
