@@ -6,6 +6,7 @@ import com.example.springbatchinvestment.domain.ReserveType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.Optional;
 import lombok.*;
 
 @Entity
@@ -43,7 +44,13 @@ public class FinancialProductOptionEntity extends BaseTimeEntity {
         this.interestRateType = InterestRateType.fromCode(financialProductOptionModel.intrRateType());
         this.reserveType = ReserveType.fromCode(financialProductOptionModel.rsrvType());
         this.depositPeriodMonths = financialProductOptionModel.saveTrm();
-        this.baseInterestRate = BigDecimal.valueOf(financialProductOptionModel.intrRate());
-        this.maximumInterestRate = BigDecimal.valueOf(financialProductOptionModel.intrRate2());
+        this.baseInterestRate =
+                Optional.ofNullable(financialProductOptionModel.intrRate())
+                        .map(BigDecimal::valueOf)
+                        .orElse(null);
+        this.maximumInterestRate =
+                Optional.ofNullable(financialProductOptionModel.intrRate2())
+                        .map(BigDecimal::valueOf)
+                        .orElse(null);
     }
 }

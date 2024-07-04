@@ -97,12 +97,7 @@ public class FinancialProductItemWriter implements ItemWriter<FinancialProductMo
                                                                                 .build())
                                                         .toList());
                             }
-                            try {
-                                this.financialProductRepository.save(financialProductEntity);
-                            } catch (Exception e) {
-                                log.error("Failed to save {}", financialProductEntity, e);
-                                throw e;
-                            }
+                            this.financialProductRepository.save(financialProductEntity);
                         });
     }
 }
