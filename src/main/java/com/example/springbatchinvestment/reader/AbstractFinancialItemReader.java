@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.*;
 
 @Slf4j
-public abstract class AbstractFinancialItemReader<T, A, U extends Result<T, A>>
+public abstract class AbstractFinancialItemReader<A, B, T, U extends Result<A, B>>
         implements ItemStreamReader<T> {
 
     protected final FssClient fssClient;
@@ -52,15 +52,22 @@ public abstract class AbstractFinancialItemReader<T, A, U extends Result<T, A>>
             } else if (this.shouldEndFinancialSync()) {
                 return null;
             } else {
+                this.nextIndexItem = 0;
                 this.fetchData();
             }
             if (this.shouldNextPage()) {
+                log.info(
+                        "Fetching next page, currentPage: {}, currentMaxPage: {}, currentPageItems: {}, nextIndexItem: {}",
+                        this.currentPage,
+                        this.currentMaxPage,
+                        this.currentPageItems.size(),
+                        this.nextIndexItem);
                 this.currentPage++;
             }
         }
 
         if (this.nextIndexItem < this.currentPageItems.size()) {
-            return this.addFinancialGroupType(this.currentPageItems.get(this.nextIndexItem++));
+            return this.currentPageItems.get(this.nextIndexItem++);
         }
 
         return null;
@@ -103,7 +110,9 @@ public abstract class AbstractFinancialItemReader<T, A, U extends Result<T, A>>
                     resultFssResponse,
                     this.currentPage,
                     this.currentFinancialGroupType);
-            this.currentPageItems = resultFssResponse.result().getBaseList();
+            this.currentPageItems =
+                    this.getItems(
+                            resultFssResponse.result().getBaseList(), resultFssResponse.result().getOptionList());
             this.currentMaxPage = resultFssResponse.result().getMaxPageNo();
         } else {
             throw new FssClientError();
@@ -112,5 +121,5 @@ public abstract class AbstractFinancialItemReader<T, A, U extends Result<T, A>>
 
     protected abstract FssResponse<U> fetchDataFromClient();
 
-    protected abstract T addFinancialGroupType(T item);
+    protected abstract List<T> getItems(List<A> baseList, List<B> optionList);
 }

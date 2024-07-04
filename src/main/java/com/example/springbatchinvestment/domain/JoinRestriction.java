@@ -16,6 +16,15 @@ public enum JoinRestriction {
         this.description = description;
     }
 
+    public static JoinRestriction fromCode(int code) {
+        for (JoinRestriction restriction : JoinRestriction.values()) {
+            if (restriction.getCode() == code) {
+                return restriction;
+            }
+        }
+        throw new IllegalArgumentException("Invalid code: " + code);
+    }
+
     @Override
     public String toString() {
         return this.code + ": " + this.description;

@@ -5,12 +5,13 @@ import com.example.springbatchinvestment.client.dto.Company;
 import com.example.springbatchinvestment.client.dto.CompanyArea;
 import com.example.springbatchinvestment.client.dto.CompanyResult;
 import com.example.springbatchinvestment.client.dto.FssResponse;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.*;
 
 @Slf4j
 public class FinancialCompanyItemReader
-        extends AbstractFinancialItemReader<Company, CompanyArea, CompanyResult> {
+        extends AbstractFinancialItemReader<Company, CompanyArea, Company, CompanyResult> {
 
     public FinancialCompanyItemReader(final String baseUrl, final String authKey) {
         super(new FssClient(baseUrl, authKey));
@@ -25,7 +26,9 @@ public class FinancialCompanyItemReader
     }
 
     @Override
-    protected Company addFinancialGroupType(Company item) {
-        return item.addFinancialGroupType(super.currentFinancialGroupType);
+    protected List<Company> getItems(List<Company> baseList, List<CompanyArea> optionList) {
+        return baseList.stream()
+                .map(company -> company.addFinancialGroupType(super.currentFinancialGroupType))
+                .toList();
     }
 }

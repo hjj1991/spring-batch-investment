@@ -19,7 +19,7 @@ spring:
       name: ${job.name:NONE}
       enabled: true
     jdbc:
-      initialize-schema: always
+      initialize-schema: never
 api:
   fss:
     auth-key: ${FSS_AUTH_KEY:NONE}

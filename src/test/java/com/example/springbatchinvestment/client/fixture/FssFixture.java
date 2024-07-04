@@ -11,6 +11,7 @@ public class FssFixture {
     public static FssResponse getCompanyResponse() {
         return new FssResponse(
                 new CompanyResult(
+                        "F",
                         "000",
                         "정상",
                         2L,

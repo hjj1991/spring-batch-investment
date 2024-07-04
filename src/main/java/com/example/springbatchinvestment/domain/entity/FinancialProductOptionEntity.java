@@ -1,5 +1,6 @@
 package com.example.springbatchinvestment.domain.entity;
 
+import com.example.springbatchinvestment.domain.FinancialProductOptionModel;
 import com.example.springbatchinvestment.domain.InterestRateType;
 import com.example.springbatchinvestment.domain.ReserveType;
 import jakarta.persistence.*;
@@ -28,15 +29,21 @@ public class FinancialProductOptionEntity extends BaseTimeEntity {
 
     @NotNull private String depositPeriodMonths;
 
-    @NotNull
     @Column(precision = 5, scale = 2)
     private BigDecimal baseInterestRate;
 
-    @NotNull
     @Column(precision = 5, scale = 2)
     private BigDecimal maximumInterestRate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "financialProductId", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "financialProductId")
     private FinancialProductEntity financialProductEntity;
+
+    public void updateByProductOption(FinancialProductOptionModel financialProductOptionModel) {
+        this.interestRateType = InterestRateType.fromCode(financialProductOptionModel.intrRateType());
+        this.reserveType = ReserveType.fromCode(financialProductOptionModel.rsrvType());
+        this.depositPeriodMonths = financialProductOptionModel.saveTrm();
+        this.baseInterestRate = BigDecimal.valueOf(financialProductOptionModel.intrRate());
+        this.maximumInterestRate = BigDecimal.valueOf(financialProductOptionModel.intrRate2());
+    }
 }

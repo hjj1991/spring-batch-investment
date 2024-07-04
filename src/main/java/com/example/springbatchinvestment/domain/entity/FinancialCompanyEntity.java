@@ -14,7 +14,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "financial_company")
+@Table(
+        name = "financial_company",
+        indexes = {@Index(columnList = "financialCompanyCode")})
 public class FinancialCompanyEntity extends BaseTimeEntity {
 
     @Id

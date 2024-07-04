@@ -10,6 +10,7 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 public abstract class Result<T, U> {
+    private final String prdtDiv;
     private final String errCd;
     private final String errMsg;
     private final Long totalCount;

@@ -31,6 +31,6 @@ public enum ReserveType {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Unknown code: " + code);
+        return null;
     }
 }

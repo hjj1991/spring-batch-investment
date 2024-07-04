@@ -8,6 +8,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class CompanyResult extends Result<Company, CompanyArea> {
     public CompanyResult(
+            final String prdtDiv,
             final String errCd,
             final String errMsg,
             final Long totalCount,
@@ -15,6 +16,6 @@ public class CompanyResult extends Result<Company, CompanyArea> {
             final Long nowPageNo,
             final List<Company> baseList,
             final List<CompanyArea> optionList) {
-        super(errCd, errMsg, totalCount, maxPageNo, nowPageNo, baseList, optionList);
+        super(prdtDiv, errCd, errMsg, totalCount, maxPageNo, nowPageNo, baseList, optionList);
     }
 }

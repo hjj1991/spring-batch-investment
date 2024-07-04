@@ -1,9 +1,13 @@
 package com.example.springbatchinvestment.domain.entity;
 
-import com.example.springbatchinvestment.domain.FinancialProductType;
-import com.example.springbatchinvestment.domain.JoinRestriction;
+import com.example.springbatchinvestment.domain.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.*;
 
 @Entity
@@ -11,7 +15,9 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "financial_product")
+@Table(
+        name = "financial_product",
+        indexes = {@Index(columnList = "financialProductCode")})
 public class FinancialProductEntity extends BaseTimeEntity {
 
     @Id
@@ -19,7 +25,7 @@ public class FinancialProductEntity extends BaseTimeEntity {
     private Long financialProductId;
 
     @NotNull
-    @Column(length = 20, unique = true)
+    @Column(length = 100)
     private String financialProductCode;
 
     @NotNull private String financialProductName;
@@ -44,6 +50,8 @@ public class FinancialProductEntity extends BaseTimeEntity {
 
     private Long maxLimit;
 
+    private String dclsMonth;
+
     private String dclsStartDay;
 
     private String dclsEndDay;
@@ -53,4 +61,66 @@ public class FinancialProductEntity extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "financialCompanyId", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private FinancialCompanyEntity financialCompanyEntity;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "financialProductEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FinancialProductOptionEntity> financialProductOptionEntities = new ArrayList<>();
+
+    public void updateByProduct(FinancialProductModel financialProductModel) {
+        this.dclsMonth = financialProductModel.dclsMonth();
+        this.financialProductName = financialProductModel.finPrdtNm();
+        this.joinWay = financialProductModel.joinWay();
+        this.postMaturityInterestRate = financialProductModel.mtrtInt();
+        this.specialCondition = financialProductModel.spclCnd();
+        this.joinRestriction =
+                JoinRestriction.fromCode(Integer.parseInt(financialProductModel.joinDeny()));
+        this.joinMember = financialProductModel.joinMember();
+        this.additionalNotes = financialProductModel.etcNote();
+        this.maxLimit =
+                Optional.ofNullable(financialProductModel.maxLimit()).map(Long::valueOf).orElse(null);
+        this.dclsStartDay = financialProductModel.dclsStrtDay();
+        this.dclsEndDay = financialProductModel.dclsEndDay();
+        this.financialSubmitDay = financialProductModel.finCoSubmDay();
+        this.financialProductOptionEntities =
+                financialProductModel.financialProductOptionModels().stream()
+                        .map(
+                                financialProductOptionModel ->
+                                        this.updateOrCreateOption(financialProductOptionModel))
+                        .toList();
+    }
+
+    private FinancialProductOptionEntity updateOrCreateOption(
+            FinancialProductOptionModel financialProductOptionModel) {
+        return this.financialProductOptionEntities.stream()
+                .filter(
+                        financialProductOptionEntity ->
+                                this.isMatchingOption(financialProductOptionEntity, financialProductOptionModel))
+                .findFirst()
+                .map(
+                        existingEntity -> {
+                            existingEntity.updateByProductOption(financialProductOptionModel);
+                            return existingEntity;
+                        })
+                .orElseGet(() -> this.createNewOption(financialProductOptionModel));
+    }
+
+    private boolean isMatchingOption(
+            FinancialProductOptionEntity entity, FinancialProductOptionModel model) {
+        return model.dclsMonth().equals(this.dclsMonth)
+                && InterestRateType.fromCode(model.intrRateType()).equals(entity.getInterestRateType())
+                && (model.rsrvType() == null
+                        || Objects.equals(ReserveType.fromCode(model.rsrvType()), entity.getReserveType()))
+                && model.saveTrm().equals(entity.getDepositPeriodMonths());
+    }
+
+    private FinancialProductOptionEntity createNewOption(FinancialProductOptionModel model) {
+        return FinancialProductOptionEntity.builder()
+                .financialProductEntity(this)
+                .interestRateType(InterestRateType.fromCode(model.intrRateType()))
+                .reserveType(ReserveType.fromCode(model.rsrvType()))
+                .depositPeriodMonths(model.saveTrm())
+                .baseInterestRate(BigDecimal.valueOf(model.intrRate()))
+                .maximumInterestRate(BigDecimal.valueOf(model.intrRate2()))
+                .build();
+    }
 }

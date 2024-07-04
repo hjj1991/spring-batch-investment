@@ -2,14 +2,16 @@ package com.example.springbatchinvestment.reader;
 
 import com.example.springbatchinvestment.client.FssClient;
 import com.example.springbatchinvestment.client.dto.*;
+import com.example.springbatchinvestment.domain.FinancialProductModel;
 import com.example.springbatchinvestment.domain.FinancialProductType;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.*;
 
 @Slf4j
 public class FinancialProductItemReader
         extends AbstractFinancialItemReader<
-                FinancialProduct, FinancialProductOption, FinancialProductResult> {
+                FinancialProduct, FinancialProductOption, FinancialProductModel, FinancialProductResult> {
 
     private final FinancialProductType financialProductType;
 
@@ -29,7 +31,17 @@ public class FinancialProductItemReader
     }
 
     @Override
-    protected FinancialProduct addFinancialGroupType(FinancialProduct item) {
-        return item.addFinancialGroupType(super.currentFinancialGroupType);
+    protected List<FinancialProductModel> getItems(
+            List<FinancialProduct> financialProducts,
+            List<FinancialProductOption> financialProductOptions) {
+        return financialProducts.stream()
+                .map(
+                        financialProduct ->
+                                FinancialProductModel.from(
+                                        financialProduct,
+                                        financialProductOptions,
+                                        super.currentFinancialGroupType,
+                                        this.financialProductType))
+                .toList();
     }
 }
