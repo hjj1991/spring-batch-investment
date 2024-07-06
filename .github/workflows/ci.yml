@@ -47,26 +47,26 @@ jobs:
         outputs:
             version: ${{ steps.extract_version.outputs.version }}
 
-#    update-helm-chart:
-#        runs-on: ubuntu-latest
-#        needs: build
-#
-#        steps:
-#            - uses: actions/checkout@v2
-#              with:
-#                  repository: hjj1991/helm-charts
-#                  token: ${{ secrets.REPO_TOKEN }}
-#                  path: helm-charts
-#
-#            - name: Update Helm values.yaml
-#              run: |
-#                  sed -i 's/tag: .*/tag: '"${{ needs.build.outputs.version }}"'/' helm-charts/api-server/values.yaml
-#
-#            - name: Commit changes
-#              run: |
-#                  cd helm-charts
-#                  git config user.name "github-actions[bot]"
-#                  git config user.email "github-actions[bot]@users.noreply.github.com"
-#                  git add api-server/values.yaml
-#                  git commit -m "Update image tag to ${{ needs.build.outputs.version }}"
-#                  git push
+    update-helm-chart:
+        runs-on: ubuntu-latest
+        needs: build
+
+        steps:
+            - uses: actions/checkout@v2
+              with:
+                  repository: hjj1991/helm-charts
+                  token: ${{ secrets.REPO_TOKEN }}
+                  path: helm-charts
+
+            - name: Update Helm values.yaml
+              run: |
+                  sed -i 's/tag: \([0-9]*\.[0-9]*\.[0-9]*\)$/tag: '"${{ needs.build.outputs.version }}"'/' helm-charts/api-server/values.yaml
+
+            - name: Commit changes
+              run: |
+                  cd helm-charts
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git add api-server/values.yaml
+                  git commit -m "Update batch job image tag to ${{ needs.build.outputs.version }}"
+                  git push
