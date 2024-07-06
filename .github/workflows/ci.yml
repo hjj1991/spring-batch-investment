@@ -60,7 +60,7 @@ jobs:
 
             - name: Update Helm values.yaml
               run: |
-                  sed -i 's/tag: \([0-9]*\.[0-9]*\.[0-9]*\)$/tag: '"${{ needs.build.outputs.version }}"'/' helm-charts/api-server/values.yaml
+                  sed -i '/batchJob:/,/image:/s/tag: [0-9]*\.[0-9]*\.[0-9]*/tag: '"${{ needs.build.outputs.version }}"'/' helm-charts/api-server/values.yaml
 
             - name: Commit changes
               run: |
