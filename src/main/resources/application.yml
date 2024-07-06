@@ -18,7 +18,7 @@ spring:
       name: ${job.name:NONE}
       enabled: true
     jdbc:
-      initialize-schema: never
+      initialize-schema: always
 api:
   fss:
     auth-key: ${FSS_AUTH_KEY:NONE}
@@ -62,6 +62,9 @@ spring:
   config:
     activate:
       on-profile: prod
+  jpa:
+    hibernate:
+      ddl-auto: update
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SECRET_USERNAME}
