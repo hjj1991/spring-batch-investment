@@ -41,8 +41,8 @@ public class FssClient {
     private final WebClient webClient;
     private final String auth;
     private static final String GET_COMPANIES_PATH = "/finlifeapi/companySearch.json";
-    private static final String GET_DEPOSITS_PATH = "/finlifeapi/depositProductsSearch.json";
-    private static final String GET_SAVINGS_PATH = "/finlifeapi/savingProductsSearch.json";
+    private static final String GET_DEPOSITS_PATH = "/finlifeapi/savingProductsSearch.json";
+    private static final String GET_SAVINGS_PATH = "/finlifeapi/depositProductsSearch.json";
 
     public FssClient(String baseUrl, String auth) {
         this.auth = auth;
