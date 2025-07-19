@@ -3,8 +3,8 @@ package com.example.springbatchinvestment.processor;
 import com.example.springbatchinvestment.domain.entity.FinancialProductEntity;
 import com.example.springbatchinvestment.domain.es.FinancialProductDocument;
 import com.example.springbatchinvestment.service.embedding.EmbeddingService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
@@ -16,13 +16,10 @@ public class FinancialProductEsItemProcessor
     private final EmbeddingService embeddingService;
 
     @Override
-    public FinancialProductDocument process(FinancialProductEntity item) throws Exception {
+    public FinancialProductDocument process(@NotNull FinancialProductEntity item) throws Exception {
         // Convert enum to string
         return FinancialProductDocument.builder()
-                .id(
-                        item.getFinancialCompanyEntity().getFinancialCompanyCode()
-                                + "-"
-                                + item.getFinancialProductCode())
+                .id(this.createEsId(item))
                 .productName(item.getFinancialProductName())
                 .companyName(item.getFinancialCompanyEntity().getCompanyName())
                 .financialProductCode(item.getFinancialProductCode())
@@ -46,8 +43,15 @@ public class FinancialProductEsItemProcessor
                                                         .maxRate(option.getMaximumInterestRate().doubleValue())
                                                         .build())
                                 .toList())
-                .productVector(this.toFloatArray(this.embeddingService.embed(createEmbeddingText(item))))
+                .productVector(this.embeddingService.embed(this.createEmbeddingText(item)))
                 .build();
+    }
+
+    @NotNull
+    private String createEsId(FinancialProductEntity item) {
+        return item.getFinancialCompanyEntity().getFinancialCompanyCode()
+                + "-"
+                + item.getFinancialProductCode();
     }
 
     private String createEmbeddingText(FinancialProductEntity item) {
@@ -59,6 +63,10 @@ public class FinancialProductEsItemProcessor
                         ? item.getSpecialCondition().replace("\n", " ").replaceAll("\\s+", " ").trim()
                         : "";
         String joinWay = item.getJoinWay() != null ? item.getJoinWay().trim() : "";
+        String postMaturityInterestRate =
+                item.getPostMaturityInterestRate() != null
+                        ? item.getPostMaturityInterestRate().replace("\n", " ").replaceAll("\\s+", " ").trim()
+                        : "";
         String etcNote =
                 item.getAdditionalNotes() != null
                         ? item.getAdditionalNotes().replace("\n", " ").replaceAll("\\s+", " ").trim()
@@ -68,18 +76,8 @@ public class FinancialProductEsItemProcessor
         return String.format(
                 "%s에서 제공하는 '%s' 상품입니다. "
                         + "주요 우대조건은 '%s'이며, 가입은 주로 %s 방식으로 가능합니다. "
+                        + "만기 후 이자율은 %s 입니다. "
                         + "기타 참고사항으로는 '%s' 내용이 있습니다.",
-                companyName, productName, specialCondition, joinWay, etcNote);
-    }
-
-    private float[] toFloatArray(List<Float> embedding) {
-        if (embedding == null) {
-            return null;
-        }
-        float[] array = new float[embedding.size()];
-        for (int i = 0; i < embedding.size(); i++) {
-            array[i] = embedding.get(i);
-        }
-        return array;
+                companyName, productName, specialCondition, joinWay, postMaturityInterestRate, etcNote);
     }
 }

@@ -20,20 +20,15 @@ spring:
     jdbc:
       initialize-schema: never
   ai:
-    vertexai:
-      embedding:
-        enabled: true
-        project-id: ${GCP_PROJECT_ID:NONE}
-        location: us-central1 # Or your desired region
+    vertex:
+      ai:
+        embedding:
+          project-id: ${PROJECT_ID:NONE}
+          location: us-central1
 api:
-  google:
-    api-key: ${GOOGLE_API_KEY:NONE}
   fss:
     auth-key: ${FSS_AUTH_KEY:NONE}
     base-url: https://finlife.fss.or.kr
-
-gcp:
-  project-id: ${GCP_PROJECT_ID:NONE}
 
 --- #test
 spring:
@@ -60,12 +55,8 @@ spring:
     url: jdbc:mariadb://localhost:3306/api_server?serverTimezone=Asia/Seoul&useUnicode=true&characterEncoding=utf-8
     username: mysqluser
     password: mysqlpw
-  ai:
-    vertexai:
-      embedding:
-        enabled: true
-        project-id: ${GCP_PROJECT_ID:NONE}
-        location: us-central1 # Or your desired region
+  elasticsearch:
+    uris: http://localhost:9200
 decorator:
   datasource:
     p6spy:
@@ -80,7 +71,7 @@ spring:
     activate:
       on-profile: prod
   elasticsearch:
-    uris: ${ES_URIS:http://localhost:9200}
+    uris: ${ES_URL:http://localhost:9200}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -88,18 +79,3 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SECRET_USERNAME}
     password: ${SECRET_PASSWORD}
-  ai:
-    vertexai:
-      embedding:
-        enabled: true
-        project-id: ${GCP_PROJECT_ID:NONE}
-        location: us-central1 # Or your desired region
-
-api:
-  google:
-    api-key: ${GOOGLE_API_KEY:NONE}
-
-decorator:
-  datasource:
-    p6spy:
-      enable-logging: false
