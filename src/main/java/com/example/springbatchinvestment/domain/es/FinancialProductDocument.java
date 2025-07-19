@@ -16,7 +16,7 @@ import org.springframework.data.elasticsearch.annotations.WriteTypeHint;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Document(indexName = "financial_product", writeTypeHint = WriteTypeHint.FALSE)
+@Document(indexName = "financial_product", writeTypeHint = WriteTypeHint.FALSE, createIndex = false)
 public class FinancialProductDocument {
 
     @Id private String id;

@@ -59,9 +59,6 @@ public class BachConfig {
     @Value(value = "${api.fss.auth-key}")
     private String authKey;
 
-    @Value("${gcp.project-id}")
-    private String gcpProjectId;
-
     @Bean(name = FINANCIAL_COMPANY_SYNC_JOB_NAME)
     public Job financialSyncJob() {
         return new JobBuilder(FINANCIAL_COMPANY_SYNC_JOB_NAME, this.jobRepository)
