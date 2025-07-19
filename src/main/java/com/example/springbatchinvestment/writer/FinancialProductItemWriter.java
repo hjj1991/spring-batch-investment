@@ -1,9 +1,6 @@
 package com.example.springbatchinvestment.writer;
 
-import com.example.springbatchinvestment.domain.FinancialProductModel;
-import com.example.springbatchinvestment.domain.InterestRateType;
-import com.example.springbatchinvestment.domain.JoinRestriction;
-import com.example.springbatchinvestment.domain.ReserveType;
+import com.example.springbatchinvestment.domain.*;
 import com.example.springbatchinvestment.domain.entity.FinancialProductEntity;
 import com.example.springbatchinvestment.domain.entity.FinancialProductOptionEntity;
 import com.example.springbatchinvestment.repository.FinancialCompanyRepository;
@@ -65,6 +62,7 @@ public class FinancialProductItemWriter implements ItemWriter<FinancialProductMo
                                                 .dclsStartDay(financialProductModel.dclsStrtDay())
                                                 .dclsEndDay(financialProductModel.dclsEndDay())
                                                 .financialSubmitDay(financialProductModel.finCoSubmDay())
+                                                .status(ProductStatus.ACTIVE)
                                                 .build();
 
                                 financialProductEntity

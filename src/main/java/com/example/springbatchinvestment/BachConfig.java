@@ -45,7 +45,6 @@ public class BachConfig {
 
     private final JobRepository jobRepository;
     private final FinancialCompanyRepository financialCompanyRepository;
-    private final FinancialProductRepository financialProductRepository;
     private final JobExecutionListener jobLoggerListener;
     private final FinancialProductItemWriter financialProductItemWriter;
     private final FinancialProductEsItemWriter financialProductEsItemWriter;
