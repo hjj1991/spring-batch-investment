@@ -58,6 +58,10 @@ public class FinancialProductEntity extends BaseTimeEntity {
 
     private String financialSubmitDay;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "financialCompanyId", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private FinancialCompanyEntity financialCompanyEntity;
@@ -67,6 +71,7 @@ public class FinancialProductEntity extends BaseTimeEntity {
     private List<FinancialProductOptionEntity> financialProductOptionEntities = new ArrayList<>();
 
     public void updateByProduct(FinancialProductModel financialProductModel) {
+        this.status = ProductStatus.ACTIVE;
         this.dclsMonth = financialProductModel.dclsMonth();
         this.financialProductName = financialProductModel.finPrdtNm();
         this.joinWay = financialProductModel.joinWay();
@@ -83,9 +88,7 @@ public class FinancialProductEntity extends BaseTimeEntity {
         this.financialSubmitDay = financialProductModel.finCoSubmDay();
         this.financialProductOptionEntities =
                 financialProductModel.financialProductOptionModels().stream()
-                        .map(
-                                financialProductOptionModel ->
-                                        this.updateOrCreateOption(financialProductOptionModel))
+                        .map(this::updateOrCreateOption)
                         .toList();
     }
 

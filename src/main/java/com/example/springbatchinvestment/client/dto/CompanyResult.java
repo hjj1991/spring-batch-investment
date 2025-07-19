@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @ToString(callSuper = true)
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 public class CompanyResult extends Result<Company, CompanyArea> {
     public CompanyResult(
             final String prdtDiv,

@@ -6,12 +6,14 @@ import com.example.springbatchinvestment.client.dto.Result;
 import com.example.springbatchinvestment.client.error.FssClientError;
 import com.example.springbatchinvestment.domain.FinancialGroupType;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.*;
 
-@Slf4j
 public abstract class AbstractFinancialItemReader<A, B, T, U extends Result<A, B>>
         implements ItemStreamReader<T> {
+
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     protected final FssClient fssClient;
     protected int currentPage = 1;

@@ -1,28 +1,26 @@
 package com.example.springbatchinvestment.writer;
 
-import com.example.springbatchinvestment.domain.*;
+import com.example.springbatchinvestment.domain.FinancialProductModel;
+import com.example.springbatchinvestment.domain.InterestRateType;
+import com.example.springbatchinvestment.domain.JoinRestriction;
+import com.example.springbatchinvestment.domain.ReserveType;
 import com.example.springbatchinvestment.domain.entity.FinancialProductEntity;
 import com.example.springbatchinvestment.domain.entity.FinancialProductOptionEntity;
 import com.example.springbatchinvestment.repository.FinancialCompanyRepository;
 import com.example.springbatchinvestment.repository.FinancialProductRepository;
 import java.math.BigDecimal;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.stereotype.Component;
 
-@Slf4j
+@Component
+@RequiredArgsConstructor
 public class FinancialProductItemWriter implements ItemWriter<FinancialProductModel> {
 
     private final FinancialProductRepository financialProductRepository;
     private final FinancialCompanyRepository financialCompanyRepository;
-
-    public FinancialProductItemWriter(
-            FinancialProductRepository financialProductRepository,
-            FinancialCompanyRepository financialCompanyRepository) {
-        this.financialProductRepository = financialProductRepository;
-        this.financialCompanyRepository = financialCompanyRepository;
-    }
 
     @Override
     public void write(Chunk<? extends FinancialProductModel> chunk) throws Exception {
