@@ -25,6 +25,9 @@ public class FinancialProductEsItemProcessor
                 .joinWay(item.getJoinWay())
                 .etcNote(item.getAdditionalNotes())
                 .status(item.getStatus().name()) // Convert enum to string
+                .financialGroupType(item.getFinancialCompanyEntity().getFinancialGroupType().name())
+                .joinRestriction(item.getJoinRestriction().name())
+                .financialProductType(item.getFinancialProductType().name())
                 .options(
                         item.getFinancialProductOptionEntities().stream()
                                 .map(
@@ -35,7 +38,7 @@ public class FinancialProductEsItemProcessor
                                                                 option.getReserveType() != null
                                                                         ? option.getReserveType().name()
                                                                         : null)
-                                                        .saveTerm(Integer.parseInt(option.getDepositPeriodMonths()))
+                                                        .depositPeriodMonths(option.getDepositPeriodMonths())
                                                         .initRate(
                                                                 option.getBaseInterestRate() != null
                                                                         ? option.getBaseInterestRate().doubleValue()

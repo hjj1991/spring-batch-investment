@@ -42,6 +42,15 @@ public class FinancialProductDocument {
     @Field(type = FieldType.Text, analyzer = "nori")
     private String etcNote;
 
+    @Field(type = FieldType.Keyword)
+    private String financialGroupType;
+
+    @Field(type = FieldType.Keyword)
+    private String joinRestriction;
+
+    @Field(type = FieldType.Keyword)
+    private String financialProductType;
+
     @Field(type = FieldType.Nested)
     private List<Option> options;
 
@@ -62,8 +71,8 @@ public class FinancialProductDocument {
         @Field(type = FieldType.Keyword)
         private String reserveType;
 
-        @Field(type = FieldType.Integer)
-        private Integer saveTerm;
+        @Field(type = FieldType.Keyword)
+        private String depositPeriodMonths;
 
         @Field(type = FieldType.Double)
         private Double initRate;
