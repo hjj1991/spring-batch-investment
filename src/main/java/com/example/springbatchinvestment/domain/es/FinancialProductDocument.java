@@ -21,6 +21,9 @@ public class FinancialProductDocument {
 
     @Id private String id;
 
+    @Field(type = FieldType.Long)
+    private Long financialProductId;
+
     @Field(type = FieldType.Text, analyzer = "nori")
     private String productName;
 

@@ -17,6 +17,7 @@ public class FinancialProductEsItemProcessor
         // Convert enum to string
         return FinancialProductDocument.builder()
                 .id(this.createEsId(item))
+                .financialProductId(item.getFinancialProductId())
                 .productName(item.getFinancialProductName())
                 .companyName(item.getFinancialCompanyEntity().getCompanyName())
                 .financialProductCode(item.getFinancialProductCode())
