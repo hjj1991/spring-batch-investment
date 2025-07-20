@@ -1,5 +1,6 @@
 package com.example.springbatchinvestment.domain.entity;
 
+import com.example.springbatchinvestment.converter.FloatArrayConverter;
 import com.example.springbatchinvestment.domain.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -32,8 +33,10 @@ public class FinancialProductEntity extends BaseTimeEntity {
 
     private String joinWay;
 
+    @Lob
     private String postMaturityInterestRate;
 
+    @Lob
     private String specialCondition;
 
     @NotNull
@@ -46,6 +49,7 @@ public class FinancialProductEntity extends BaseTimeEntity {
 
     @NotNull private String joinMember;
 
+    @Lob
     @NotNull private String additionalNotes;
 
     private Long maxLimit;
@@ -61,6 +65,21 @@ public class FinancialProductEntity extends BaseTimeEntity {
     @NotNull
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
+
+    @Column(length = 255) // SHA-256 hash is 64 characters long
+    private String productContentHash;
+
+    @Lob
+    @Convert(converter = FloatArrayConverter.class)
+    private float[] embeddingVector;
+
+    public void updateEmbeddingVector(float[] embeddingVector) {
+        this.embeddingVector = embeddingVector;
+    }
+
+    public void updateProductContentHash(String productContentHash) {
+        this.productContentHash = productContentHash;
+    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "financialCompanyId", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))

@@ -5,9 +5,8 @@ import com.example.springbatchinvestment.client.dto.Company;
 import com.example.springbatchinvestment.client.dto.CompanyArea;
 import com.example.springbatchinvestment.client.dto.CompanyResult;
 import com.example.springbatchinvestment.client.dto.FssResponse;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FinancialCompanyItemReader

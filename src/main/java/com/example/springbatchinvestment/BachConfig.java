@@ -10,7 +10,6 @@ import com.example.springbatchinvestment.reader.FinancialCompanyItemReader;
 import com.example.springbatchinvestment.reader.FinancialProductEsItemReader;
 import com.example.springbatchinvestment.reader.FinancialProductItemReader;
 import com.example.springbatchinvestment.repository.FinancialCompanyRepository;
-import com.example.springbatchinvestment.repository.FinancialProductRepository;
 import com.example.springbatchinvestment.tasklet.FinancialProductStatusUpdateTasklet;
 import com.example.springbatchinvestment.writer.FinancialCompanyItemWriter;
 import com.example.springbatchinvestment.writer.FinancialProductEsItemWriter;
