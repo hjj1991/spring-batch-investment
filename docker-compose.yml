@@ -1,0 +1,58 @@
+version: '3.7'
+
+services:
+    elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+        container_name: elasticsearch
+        environment:
+            - discovery.type=single-node
+            - xpack.security.enabled=false
+            - xpack.ml.enabled=false
+            - xpack.security.transport.ssl.enabled=false
+            - bootstrap.memory_lock=true
+            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        volumes:
+            - esdata:/usr/share/elasticsearch/data
+        ports:
+            - "9200:9200"
+        networks:
+            - backend
+
+    kibana:
+        image: docker.elastic.co/kibana/kibana:8.13.4
+        container_name: kibana
+        environment:
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+        ports:
+            - "5601:5601"
+        depends_on:
+            - elasticsearch
+        networks:
+            - backend
+
+    mysql:
+        image: mysql:8.0
+        container_name: mysql
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: rootpw
+            MYSQL_DATABASE: api_server
+            MYSQL_USER: mysqluser
+            MYSQL_PASSWORD: mysqlpw
+        ports:
+            - "3306:3306"
+        volumes:
+            - mysqldata:/var/lib/mysql
+        networks:
+            - backend
+
+volumes:
+    esdata:
+    mysqldata:
+
+networks:
+    backend:
