@@ -69,6 +69,8 @@ spring:
       on-profile: prod
   elasticsearch:
     uris: ${ES_URL:http://localhost:9200}
+    username: elastic
+    password: ${ES_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: validate
