@@ -71,6 +71,9 @@ spring:
     uris: ${ES_URL:http://localhost:9200}
     username: elastic
     password: ${ES_PASSWORD}
+    restclient:
+      ssl:
+        bundle: "none"
   jpa:
     hibernate:
       ddl-auto: validate
