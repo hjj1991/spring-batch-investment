@@ -91,7 +91,9 @@ public class GeminiClient {
                         .orElse(new float[0]);
             } catch (ClientException e) {
                 if (e.code() == 429) {
-                    log.warn("API quota exceeded for key {}. Switching to next key.", this.apiKeys.get(this.currentKeyIndex));
+                    log.warn(
+                            "API quota exceeded for key {}. Switching to next key.",
+                            this.apiKeys.get(this.currentKeyIndex));
                     this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.size();
                     retryCount++; // Increment retryCount here
                     if (retryCount == MAX_RETRIES) { // Check if all retries are exhausted
@@ -108,6 +110,7 @@ public class GeminiClient {
                 throw new RuntimeException("Failed to embed content due to unexpected error.", e);
             }
         }
-        throw new RuntimeException("Failed to embed content after multiple retries."); // Should be reached if all retries fail
+        throw new RuntimeException(
+                "Failed to embed content after multiple retries."); // Should be reached if all retries fail
     }
 }

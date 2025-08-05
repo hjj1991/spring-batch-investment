@@ -24,8 +24,7 @@ public class FinancialProductEsItemReader {
                 .name("financialProductEsReader")
                 .entityManagerFactory(this.entityManagerFactory)
                 .pageSize(CHUNK_SIZE)
-                .queryString(
-                        "SELECT p FROM FinancialProductEntity p JOIN FETCH p.financialCompanyEntity")
+                .queryString("SELECT p FROM FinancialProductEntity p JOIN FETCH p.financialCompanyEntity")
                 .build();
     }
 }

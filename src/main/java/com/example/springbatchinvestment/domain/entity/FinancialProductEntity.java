@@ -33,11 +33,9 @@ public class FinancialProductEntity extends BaseTimeEntity {
 
     private String joinWay;
 
-    @Lob
-    private String postMaturityInterestRate;
+    @Lob private String postMaturityInterestRate;
 
-    @Lob
-    private String specialCondition;
+    @Lob private String specialCondition;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -49,8 +47,7 @@ public class FinancialProductEntity extends BaseTimeEntity {
 
     @NotNull private String joinMember;
 
-    @Lob
-    @NotNull private String additionalNotes;
+    @Lob @NotNull private String additionalNotes;
 
     private Long maxLimit;
 
