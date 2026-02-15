@@ -22,28 +22,41 @@ public class FinancialProductOptionEntity extends BaseTimeEntity {
     private Long financialProductOptionId;
 
     @NotNull
+    @Column(length = 6)
+    private String dclsMonth;
+
+    @NotNull
     @Enumerated(EnumType.STRING)
     private InterestRateType interestRateType;
+
+    private String interestRateTypeName;
 
     @Enumerated(EnumType.STRING)
     private ReserveType reserveType;
 
-    @NotNull private String depositPeriodMonths;
+    private String reserveTypeName;
 
-    @Column(precision = 5, scale = 2)
+    @NotNull private Integer depositPeriodMonths;
+
+    @Column(precision = 8, scale = 5)
     private BigDecimal baseInterestRate;
 
-    @Column(precision = 5, scale = 2)
+    @Column(precision = 8, scale = 5)
     private BigDecimal maximumInterestRate;
 
+    @Lob private String sourcePayload;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "financialProductId")
+    @JoinColumn(name = "financial_product_id")
     private FinancialProductEntity financialProductEntity;
 
     public void updateByProductOption(FinancialProductOptionModel financialProductOptionModel) {
+        this.dclsMonth = financialProductOptionModel.dclsMonth();
         this.interestRateType = InterestRateType.fromCode(financialProductOptionModel.intrRateType());
+        this.interestRateTypeName = financialProductOptionModel.intrRateTypeNm();
         this.reserveType = ReserveType.fromCode(financialProductOptionModel.rsrvType());
-        this.depositPeriodMonths = financialProductOptionModel.saveTrm();
+        this.reserveTypeName = financialProductOptionModel.rsrvTypeNm();
+        this.depositPeriodMonths = Integer.valueOf(financialProductOptionModel.saveTrm());
         this.baseInterestRate =
                 Optional.ofNullable(financialProductOptionModel.intrRate())
                         .map(BigDecimal::valueOf)
@@ -52,5 +65,6 @@ public class FinancialProductOptionEntity extends BaseTimeEntity {
                 Optional.ofNullable(financialProductOptionModel.intrRate2())
                         .map(BigDecimal::valueOf)
                         .orElse(null);
+        this.sourcePayload = financialProductOptionModel.toString();
     }
 }

@@ -5,12 +5,13 @@ import com.example.springbatchinvestment.client.dto.Company;
 import com.example.springbatchinvestment.client.dto.CompanyArea;
 import com.example.springbatchinvestment.client.dto.CompanyResult;
 import com.example.springbatchinvestment.client.dto.FssResponse;
+import com.example.springbatchinvestment.domain.CompanySyncItem;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FinancialCompanyItemReader
-        extends AbstractFinancialItemReader<Company, CompanyArea, Company, CompanyResult> {
+        extends AbstractFinancialItemReader<Company, CompanyArea, CompanySyncItem, CompanyResult> {
 
     public FinancialCompanyItemReader(final String baseUrl, final String authKey) {
         super(new FssClient(baseUrl, authKey));
@@ -25,9 +26,22 @@ public class FinancialCompanyItemReader
     }
 
     @Override
-    protected List<Company> getItems(List<Company> baseList, List<CompanyArea> optionList) {
+    protected List<CompanySyncItem> getItems(List<Company> baseList, List<CompanyArea> optionList) {
         return baseList.stream()
-                .map(company -> company.addFinancialGroupType(super.currentFinancialGroupType))
+                .map(
+                        company -> {
+                            Company companyWithGroupType =
+                                    company.addFinancialGroupType(super.currentFinancialGroupType);
+                            List<CompanyArea> matchedAreas =
+                                    optionList.stream()
+                                            .filter(
+                                                    companyArea ->
+                                                            companyWithGroupType
+                                                                    .finCoNo()
+                                                                    .equals(companyArea.finCoNo()))
+                                            .toList();
+                            return new CompanySyncItem(companyWithGroupType, matchedAreas);
+                        })
                 .toList();
     }
 }

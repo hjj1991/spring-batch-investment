@@ -6,11 +6,6 @@ import com.example.springbatchinvestment.client.dto.FssResponse;
 import com.example.springbatchinvestment.client.error.FssClientError;
 import com.example.springbatchinvestment.client.error.FssUnavailableError;
 import com.example.springbatchinvestment.domain.FinancialProductType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutException;
@@ -25,8 +20,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
-import org.springframework.http.codec.json.Jackson2JsonEncoder;
+import org.springframework.http.codec.json.JacksonJsonDecoder;
+import org.springframework.http.codec.json.JacksonJsonEncoder;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -35,6 +30,8 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.PrematureCloseException;
 import reactor.util.retry.Retry;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
 public class FssClient {
@@ -46,23 +43,22 @@ public class FssClient {
 
     public FssClient(String baseUrl, String auth) {
         this.auth = auth;
-        ObjectMapper objectMapper =
+        JsonMapper objectMapper =
                 JsonMapper.builder()
+                        .configureForJackson2()
                         .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
-                        .addModule(new JavaTimeModule())
+                        .defaultTimeZone(TimeZone.getDefault())
                         .build();
-        objectMapper.setTimeZone(TimeZone.getDefault());
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         ExchangeStrategies exchangeStrategies =
                 ExchangeStrategies.builder()
                         .codecs(
                                 clientCodecConfigurer -> {
                                     clientCodecConfigurer
                                             .defaultCodecs()
-                                            .jackson2JsonDecoder(new Jackson2JsonDecoder(objectMapper));
+                                            .jacksonJsonDecoder(new JacksonJsonDecoder(objectMapper));
                                     clientCodecConfigurer
                                             .defaultCodecs()
-                                            .jackson2JsonEncoder(new Jackson2JsonEncoder(objectMapper));
+                                            .jacksonJsonEncoder(new JacksonJsonEncoder(objectMapper));
                                     clientCodecConfigurer.defaultCodecs().maxInMemorySize(-1);
                                 })
                         .build();
@@ -217,4 +213,5 @@ public class FssClient {
             case INSTALLMENT_SAVINGS -> GET_DEPOSITS_PATH;
         };
     }
+
 }

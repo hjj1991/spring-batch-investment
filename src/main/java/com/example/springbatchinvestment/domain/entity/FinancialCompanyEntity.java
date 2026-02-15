@@ -41,11 +41,17 @@ public class FinancialCompanyEntity extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private FinancialGroupType financialGroupType;
 
+    @Lob private String sourcePayload;
+
     public void updateByCompany(Company company) {
         this.dclsMonth = company.dclsMonth();
         this.companyName = company.korCoNm();
         this.dclsChrgMan = company.dclsChrgMan();
         this.hompUrl = company.hompUrl();
         this.calTel = company.calTel();
+    }
+
+    public void updateSourcePayload(String sourcePayload) {
+        this.sourcePayload = sourcePayload;
     }
 }

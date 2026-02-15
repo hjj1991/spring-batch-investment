@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @RequiredArgsConstructor
-public class FinancialProductEsItemReader {
+public class FinancialProductHistoryItemReader {
 
     private final EntityManagerFactory entityManagerFactory;
 
@@ -19,9 +19,9 @@ public class FinancialProductEsItemReader {
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<FinancialProductEntity> financialProductEsReader() {
+    public JpaPagingItemReader<FinancialProductEntity> financialProductHistoryReader() {
         return new JpaPagingItemReaderBuilder<FinancialProductEntity>()
-                .name("financialProductEsReader")
+                .name("financialProductHistoryReader")
                 .entityManagerFactory(this.entityManagerFactory)
                 .pageSize(CHUNK_SIZE)
                 .queryString("SELECT p FROM FinancialProductEntity p JOIN FETCH p.financialCompanyEntity")

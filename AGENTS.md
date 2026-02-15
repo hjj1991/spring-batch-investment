@@ -5,18 +5,17 @@
 **Branch:** main
 
 ## OVERVIEW
-Spring Boot batch application that syncs FSS financial products into MySQL and Elasticsearch. Single executable process (non-web) orchestrates one multi-step `Job`.
+Spring Boot batch application that syncs FSS financial products into PostgreSQL and emits change events via PGMQ. Single executable process (non-web) orchestrates one multi-step `Job`.
 
 ## STRUCTURE
 ```text
 spring-batch-investment/
 |- src/main/java/com/example/springbatchinvestment/  # Batch orchestration and domain modules
 |  |- client/      # External API clients + DTOs/errors
-|  |- domain/      # Enums/models/entities/documents
+|  |- domain/      # Enums/models/entities
 |  |- reader/      # Batch item readers
 |  |- writer/      # Batch item writers
-|  |- processor/   # Batch processor(s)
-|  |- repository/  # JPA + Elasticsearch repositories
+|  |- repository/  # JPA repositories
 |  |- service/     # Embedding-related services
 |  |- tasklet/     # Tasklet-based step(s)
 |  `- listener/    # Job listener(s)
@@ -33,7 +32,7 @@ spring-batch-investment/
 | App entrypoint | `src/main/java/com/example/springbatchinvestment/SpringBatchInvestmentApplication.java` | Non-web process; exits after run |
 | Job/step wiring | `src/main/java/com/example/springbatchinvestment/BachConfig.java` | Defines `Job` + 5 `Step` beans |
 | External FSS calls | `src/main/java/com/example/springbatchinvestment/client/FssClient.java` | WebClient, retry/backoff, error mapping |
-| ES client config | `src/main/java/com/example/springbatchinvestment/ElasticsearchConfig.java` | RestClient + template wiring |
+| History + queue write | `src/main/java/com/example/springbatchinvestment/writer/FinancialProductHistoryPgmqItemWriter.java` | Timescale history insert + `pgmq.send` |
 | Runtime profiles | `src/main/resources/application.yml` | `local`/`test`/`prod`, `job.name` selector |
 | CI/release flow | `.github/workflows/ci.yml` | Release-branch gated build/push/deploy-tag update |
 
@@ -46,15 +45,28 @@ spring-batch-investment/
 | `financialProductStatusUpdateStep()` | `Step` bean | `src/main/java/com/example/springbatchinvestment/BachConfig.java` | n/a | Status reset tasklet |
 | `financialProductSavingsSyncStep()` | `Step` bean | `src/main/java/com/example/springbatchinvestment/BachConfig.java` | n/a | Savings product ingest |
 | `financialProductInstallmentSavingsSyncStep()` | `Step` bean | `src/main/java/com/example/springbatchinvestment/BachConfig.java` | n/a | Installment ingest |
-| `financialProductEsSyncStep()` | `Step` bean | `src/main/java/com/example/springbatchinvestment/BachConfig.java` | n/a | RDB -> ES sync |
+| `financialProductHistoryPgmqSyncStep()` | `Step` bean | `src/main/java/com/example/springbatchinvestment/BachConfig.java` | n/a | RDB -> history + PGMQ sync |
 
 ## CONVENTIONS
 - Formatting enforced via Spotless in `build.gradle` (`googleJavaFormat`, custom import order, trim/newline).
-- Java/Kotlin toolchain pinned to 21 (`kotlin { jvmToolchain(21) }`), Gradle wrapper pinned to 8.5.
+- Java toolchain pinned to 25 (`kotlin { jvmToolchain(25) }`), Gradle wrapper pinned to 9.1.0.
 - Field access style consistently uses `this.` for member references.
 - Batch app runs as CLI (`spring.main.web-application-type: none`) and selects job by `job.name`.
 - CI only triggers on `releases-**` branches.
 - Code change policy: every functional code change must include or update unit tests.
+- Authoritative coding/testing rules: `docs/coding-rules.md`.
+
+## LLM STARTUP RULES
+- Any new LLM session must read this file (`AGENTS.md`) first.
+- Then read `docs/coding-rules.md` before editing code.
+- If rules conflict, `docs/coding-rules.md` is authoritative for coding/testing policy.
+- Do not mark work complete unless related tests were executed and passed.
+
+## TESTING GUIDELINE
+- Repository tests: use PostgreSQL Testcontainers as default (`@DataJpaTest` + container).
+- Embedded DB is only for DB-agnostic smoke tests; avoid it for PostgreSQL-specific behavior.
+- Batch flow changes require step/job-level integration tests plus relevant unit tests.
+- Any code change must run related tests locally and they must pass before completion.
 
 ## ANTI-PATTERNS (THIS PROJECT)
 - No explicit `DO NOT`/`NEVER` policy markers found in repository text.
@@ -76,6 +88,6 @@ spring-batch-investment/
 ```
 
 ## NOTES
-- Required env keys at runtime: `FSS_AUTH_KEY`, `GEMINI_AUTH_KEY` (and prod datasource/ES secrets).
+- Required env keys at runtime: `FSS_AUTH_KEY`, `GEMINI_AUTH_KEY` (and prod datasource/PGMQ secrets).
 - Docker image expects `build/libs/spring-batch-investment.jar` (`Dockerfile`).
 - Release pipeline also updates tag in external helm repo (`hjj1991/helm-charts`).

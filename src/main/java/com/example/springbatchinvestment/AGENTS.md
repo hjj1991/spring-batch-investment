@@ -3,20 +3,18 @@
 **Scope:** `src/main/java/com/example/springbatchinvestment`
 
 ## OVERVIEW
-Core batch module: job orchestration, step wiring, readers/writers/processors, repositories, and integration clients.
+Core batch module: job orchestration, step wiring, readers/writers, repositories, and integration clients.
 
 ## STRUCTURE
 ```text
 springbatchinvestment/
 |- BachConfig.java                      # Main Job + Step orchestration
 |- SpringBatchInvestmentApplication.java
-|- ElasticsearchConfig.java
 |- client/                              # FSS + Gemini clients and DTO contracts
-|- domain/                              # Business enums/models + JPA/ES types
+|- domain/                              # Business enums/models + JPA entities
 |- reader/                              # External and DB item readers
-|- writer/                              # Persistence and ES writers
-|- processor/                           # Entity -> document conversion
-|- repository/                          # JPA + ES repository interfaces
+|- writer/                              # Persistence + history/queue writers
+|- repository/                          # JPA repository interfaces
 |- tasklet/                             # One-off status update step
 `- listener/                            # Job lifecycle logging hooks
 ```
@@ -26,9 +24,9 @@ springbatchinvestment/
 |------|----------|-----|
 | Change job flow/order | `BachConfig.java` | Owns `JobBuilder` chain and step sequence |
 | Change application lifecycle | `SpringBatchInvestmentApplication.java` | CLI bootstrap and `System.exit` behavior |
-| Tune ES connectivity | `ElasticsearchConfig.java` | RestClient + template beans |
 | Add new FSS API behavior | `client/FssClient.java` | Timeouts, retries, error mapping |
-| Modify product persistence logic | `writer/FinancialProductItemWriter.java` | Save/update + embedding orchestration |
+| Modify product persistence logic | `writer/FinancialProductItemWriter.java` | Save/update + stale marker orchestration |
+| Modify history/event path | `writer/FinancialProductHistoryPgmqItemWriter.java` | History insert + event enqueue |
 
 ## CONVENTIONS
 - Step names and job names are constants in `BachConfig`; keep names explicit and stable.

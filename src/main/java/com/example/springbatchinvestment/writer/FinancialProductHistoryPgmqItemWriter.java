@@ -2,26 +2,32 @@ package com.example.springbatchinvestment.writer;
 
 import com.example.springbatchinvestment.domain.entity.FinancialProductEntity;
 import com.example.springbatchinvestment.domain.entity.FinancialProductOptionEntity;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.batch.infrastructure.item.ItemWriter;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @RequiredArgsConstructor
 public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<FinancialProductEntity> {
 
     private static final String QUEUE_NAME = "product_change_events";
+    private static final String EVENT_TYPE_NEW_PRODUCT = "NEW_PRODUCT";
+    private static final String EVENT_TYPE_STATUS_CHANGED = "STATUS_CHANGED";
+    private static final String EVENT_TYPE_CONTENT_CHANGED = "CONTENT_CHANGED";
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final ObjectMapper objectMapper;
     private final AtomicBoolean queueInitialized = new AtomicBoolean(false);
 
@@ -31,22 +37,92 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
         OffsetDateTime observedAt = OffsetDateTime.now();
 
         for (FinancialProductEntity financialProductEntity : chunk.getItems()) {
-            this.insertProductHistory(financialProductEntity, observedAt);
+            String currentPayload =
+                    this.objectMapper.writeValueAsString(this.createHistoryPayload(financialProductEntity));
+            PreviousProductSnapshot previousSnapshot = this.findPreviousSnapshot(financialProductEntity);
+            if (this.isUnchanged(financialProductEntity, previousSnapshot, currentPayload)) {
+                continue;
+            }
+
+            String eventType = this.resolveEventType(financialProductEntity, previousSnapshot, currentPayload);
+            this.insertProductHistory(financialProductEntity, observedAt, currentPayload);
             this.insertRateHistory(financialProductEntity, observedAt);
-            this.enqueueProductEvent(financialProductEntity, observedAt);
+            if (eventType != null) {
+                this.enqueueProductEvent(financialProductEntity, observedAt, eventType);
+            }
         }
+    }
+
+    private PreviousProductSnapshot findPreviousSnapshot(FinancialProductEntity financialProductEntity) {
+        List<Map<String, Object>> rows =
+                this.namedParameterJdbcTemplate.queryForList(
+                        """
+                        SELECT status, product_content_hash, payload
+                        FROM financial_product_history
+                        WHERE financial_product_id = :financialProductId
+                        ORDER BY observed_at DESC
+                        LIMIT 1
+                        """,
+                        new MapSqlParameterSource()
+                                .addValue("financialProductId", financialProductEntity.getFinancialProductId()));
+
+        if (rows.isEmpty()) {
+            return null;
+        }
+
+        Map<String, Object> previousRow = rows.get(0);
+        return new PreviousProductSnapshot(
+                (String) previousRow.get("status"),
+                (String) previousRow.get("product_content_hash"),
+                previousRow.get("payload") == null ? null : previousRow.get("payload").toString());
+    }
+
+    private boolean isUnchanged(
+            FinancialProductEntity financialProductEntity,
+            PreviousProductSnapshot previousSnapshot,
+            String currentPayload) {
+        if (previousSnapshot == null) {
+            return false;
+        }
+
+        String currentStatus = financialProductEntity.getStatus().name();
+        String currentHash = financialProductEntity.getProductContentHash();
+        return Objects.equals(previousSnapshot.status(), currentStatus)
+                && Objects.equals(previousSnapshot.productContentHash(), currentHash)
+                && Objects.equals(previousSnapshot.payload(), currentPayload);
+    }
+
+    private String resolveEventType(
+            FinancialProductEntity financialProductEntity,
+            PreviousProductSnapshot previousSnapshot,
+            String currentPayload) {
+        if (previousSnapshot == null) {
+            return EVENT_TYPE_NEW_PRODUCT;
+        }
+        String currentStatus = financialProductEntity.getStatus().name();
+        String currentHash = financialProductEntity.getProductContentHash();
+
+        if (!Objects.equals(previousSnapshot.status(), currentStatus)) {
+            return EVENT_TYPE_STATUS_CHANGED;
+        }
+        if (!Objects.equals(previousSnapshot.productContentHash(), currentHash)
+                || !Objects.equals(previousSnapshot.payload(), currentPayload)) {
+            return EVENT_TYPE_CONTENT_CHANGED;
+        }
+        return null;
     }
 
     private void initializeQueue() {
         if (this.queueInitialized.compareAndSet(false, true)) {
-            this.jdbcTemplate.execute("SELECT pgmq.create('product_change_events')");
+            this.namedParameterJdbcTemplate
+                    .getJdbcOperations()
+                    .execute("SELECT pgmq.create('product_change_events')");
         }
     }
 
     private void insertProductHistory(
-            FinancialProductEntity financialProductEntity, OffsetDateTime observedAt)
-            throws JsonProcessingException {
-        this.jdbcTemplate.update(
+            FinancialProductEntity financialProductEntity, OffsetDateTime observedAt, String currentPayload) {
+        this.namedParameterJdbcTemplate.update(
                 """
                 INSERT INTO financial_product_history(
                     observed_at,
@@ -57,16 +133,30 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
                     status,
                     product_content_hash,
                     payload
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, CAST(? AS jsonb))
+                ) VALUES (
+                    :observedAt,
+                    :financialProductId,
+                    :financialCompanyId,
+                    :financialProductCode,
+                    :financialProductType,
+                    :status,
+                    :productContentHash,
+                    CAST(:payload AS jsonb)
+                )
                 """,
-                observedAt,
-                financialProductEntity.getFinancialProductId(),
-                financialProductEntity.getFinancialCompanyEntity().getFinancialCompanyId(),
-                financialProductEntity.getFinancialProductCode(),
-                financialProductEntity.getFinancialProductType().name(),
-                financialProductEntity.getStatus().name(),
-                financialProductEntity.getProductContentHash(),
-                this.objectMapper.writeValueAsString(this.createHistoryPayload(financialProductEntity)));
+                new MapSqlParameterSource()
+                        .addValue("observedAt", observedAt)
+                        .addValue("financialProductId", financialProductEntity.getFinancialProductId())
+                        .addValue(
+                                "financialCompanyId",
+                                financialProductEntity.getFinancialCompanyEntity().getFinancialCompanyId())
+                        .addValue("financialProductCode", financialProductEntity.getFinancialProductCode())
+                        .addValue(
+                                "financialProductType",
+                                financialProductEntity.getFinancialProductType().name())
+                        .addValue("status", financialProductEntity.getStatus().name())
+                        .addValue("productContentHash", financialProductEntity.getProductContentHash())
+                        .addValue("payload", currentPayload));
     }
 
     private Map<String, Object> createHistoryPayload(FinancialProductEntity financialProductEntity) {
@@ -81,6 +171,16 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
         payload.put(
                 "options",
                 financialProductEntity.getFinancialProductOptionEntities().stream()
+                        .sorted(
+                                Comparator.comparing(
+                                                (FinancialProductOptionEntity optionEntity) ->
+                                                        optionEntity.getInterestRateType().name())
+                                        .thenComparing(
+                                                optionEntity ->
+                                                        optionEntity.getReserveType() == null
+                                                                ? ""
+                                                                : optionEntity.getReserveType().name())
+                                        .thenComparing(FinancialProductOptionEntity::getDepositPeriodMonths))
                         .map(this::createOptionPayload)
                         .toList());
         return payload;
@@ -100,7 +200,7 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
             FinancialProductEntity financialProductEntity, OffsetDateTime observedAt) {
         for (FinancialProductOptionEntity optionEntity :
                 financialProductEntity.getFinancialProductOptionEntities()) {
-            this.jdbcTemplate.update(
+            this.namedParameterJdbcTemplate.update(
                     """
                     INSERT INTO financial_product_rate_history(
                         observed_at,
@@ -111,24 +211,40 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
                         deposit_period_months,
                         base_interest_rate,
                         maximum_interest_rate
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (
+                        :observedAt,
+                        :financialProductId,
+                        :financialProductOptionId,
+                        :interestRateType,
+                        :reserveType,
+                        :depositPeriodMonths,
+                        :baseInterestRate,
+                        :maximumInterestRate
+                    )
                     """,
-                    observedAt,
-                    financialProductEntity.getFinancialProductId(),
-                    optionEntity.getFinancialProductOptionId(),
-                    optionEntity.getInterestRateType().name(),
-                    optionEntity.getReserveType() == null ? null : optionEntity.getReserveType().name(),
-                    optionEntity.getDepositPeriodMonths(),
-                    optionEntity.getBaseInterestRate(),
-                    optionEntity.getMaximumInterestRate());
+                    new MapSqlParameterSource()
+                            .addValue("observedAt", observedAt)
+                            .addValue("financialProductId", financialProductEntity.getFinancialProductId())
+                            .addValue(
+                                    "financialProductOptionId",
+                                    optionEntity.getFinancialProductOptionId())
+                            .addValue("interestRateType", optionEntity.getInterestRateType().name())
+                            .addValue(
+                                    "reserveType",
+                                    optionEntity.getReserveType() == null
+                                            ? null
+                                            : optionEntity.getReserveType().name())
+                            .addValue("depositPeriodMonths", optionEntity.getDepositPeriodMonths())
+                            .addValue("baseInterestRate", optionEntity.getBaseInterestRate())
+                            .addValue("maximumInterestRate", optionEntity.getMaximumInterestRate()));
         }
     }
 
     private void enqueueProductEvent(
-            FinancialProductEntity financialProductEntity, OffsetDateTime observedAt)
-            throws JsonProcessingException {
+            FinancialProductEntity financialProductEntity, OffsetDateTime observedAt, String eventType)
+            throws JacksonException {
         Map<String, Object> eventPayload = new LinkedHashMap<>();
-        eventPayload.put("event_type", "PRODUCT_SYNCED");
+        eventPayload.put("event_type", eventType);
         eventPayload.put("occurred_at", observedAt);
         eventPayload.put("financial_product_id", financialProductEntity.getFinancialProductId());
         eventPayload.put(
@@ -137,10 +253,13 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
         eventPayload.put("financial_product_code", financialProductEntity.getFinancialProductCode());
         eventPayload.put("status", financialProductEntity.getStatus().name());
 
-        this.jdbcTemplate.queryForObject(
-                "SELECT * FROM pgmq.send(?::text, CAST(? AS jsonb))",
-                Long.class,
-                QUEUE_NAME,
-                this.objectMapper.writeValueAsString(eventPayload));
+        this.namedParameterJdbcTemplate.queryForObject(
+                "SELECT * FROM pgmq.send(:queueName::text, CAST(:payload AS jsonb))",
+                new MapSqlParameterSource()
+                        .addValue("queueName", QUEUE_NAME)
+                        .addValue("payload", this.objectMapper.writeValueAsString(eventPayload)),
+                Long.class);
     }
+
+    private record PreviousProductSnapshot(String status, String productContentHash, String payload) {}
 }

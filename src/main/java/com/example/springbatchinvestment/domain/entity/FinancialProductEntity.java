@@ -5,6 +5,13 @@ import com.example.springbatchinvestment.domain.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +27,9 @@ import lombok.*;
         name = "financial_product",
         indexes = {@Index(columnList = "financialProductCode")})
 public class FinancialProductEntity extends BaseTimeEntity {
+
+    private static final DateTimeFormatter SUBMIT_DAY_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,11 +63,11 @@ public class FinancialProductEntity extends BaseTimeEntity {
 
     private String dclsMonth;
 
-    private String dclsStartDay;
+    private LocalDate dclsStartDay;
 
-    private String dclsEndDay;
+    private LocalDate dclsEndDay;
 
-    private String financialSubmitDay;
+    private OffsetDateTime financialSubmitDay;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -66,9 +76,13 @@ public class FinancialProductEntity extends BaseTimeEntity {
     @Column(length = 255) // SHA-256 hash is 64 characters long
     private String productContentHash;
 
+    private ZonedDateTime lastSeenAt;
+
     @Lob
     @Convert(converter = FloatArrayConverter.class)
     private float[] embeddingVector;
+
+    @Lob private String sourcePayload;
 
     public void updateEmbeddingVector(float[] embeddingVector) {
         this.embeddingVector = embeddingVector;
@@ -78,8 +92,12 @@ public class FinancialProductEntity extends BaseTimeEntity {
         this.productContentHash = productContentHash;
     }
 
+    public void updateLastSeenAt(ZonedDateTime lastSeenAt) {
+        this.lastSeenAt = lastSeenAt;
+    }
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "financialCompanyId", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "financial_company_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private FinancialCompanyEntity financialCompanyEntity;
 
     @Builder.Default
@@ -99,9 +117,10 @@ public class FinancialProductEntity extends BaseTimeEntity {
         this.additionalNotes = financialProductModel.etcNote();
         this.maxLimit =
                 Optional.ofNullable(financialProductModel.maxLimit()).map(Long::valueOf).orElse(null);
-        this.dclsStartDay = financialProductModel.dclsStrtDay();
-        this.dclsEndDay = financialProductModel.dclsEndDay();
-        this.financialSubmitDay = financialProductModel.finCoSubmDay();
+        this.dclsStartDay = this.parseDate(financialProductModel.dclsStrtDay());
+        this.dclsEndDay = this.parseDate(financialProductModel.dclsEndDay());
+        this.financialSubmitDay = this.parseOffsetDateTime(financialProductModel.finCoSubmDay());
+        this.sourcePayload = financialProductModel.toString();
         this.financialProductOptionEntities =
                 financialProductModel.financialProductOptionModels().stream()
                         .map(this::updateOrCreateOption)
@@ -129,17 +148,59 @@ public class FinancialProductEntity extends BaseTimeEntity {
                 && InterestRateType.fromCode(model.intrRateType()).equals(entity.getInterestRateType())
                 && (model.rsrvType() == null
                         || Objects.equals(ReserveType.fromCode(model.rsrvType()), entity.getReserveType()))
-                && model.saveTrm().equals(entity.getDepositPeriodMonths());
+                && this.parseDepositPeriodMonths(model.saveTrm()).equals(entity.getDepositPeriodMonths());
     }
 
     private FinancialProductOptionEntity createNewOption(FinancialProductOptionModel model) {
         return FinancialProductOptionEntity.builder()
                 .financialProductEntity(this)
+                .dclsMonth(model.dclsMonth())
                 .interestRateType(InterestRateType.fromCode(model.intrRateType()))
+                .interestRateTypeName(model.intrRateTypeNm())
                 .reserveType(ReserveType.fromCode(model.rsrvType()))
-                .depositPeriodMonths(model.saveTrm())
+                .reserveTypeName(model.rsrvTypeNm())
+                .depositPeriodMonths(this.parseDepositPeriodMonths(model.saveTrm()))
                 .baseInterestRate(BigDecimal.valueOf(model.intrRate()))
                 .maximumInterestRate(BigDecimal.valueOf(model.intrRate2()))
+                .sourcePayload(model.toString())
                 .build();
+    }
+
+    private Integer parseDepositPeriodMonths(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("saveTrm is blank");
+        }
+        try {
+            return Integer.valueOf(value);
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("saveTrm is not numeric: " + value, exception);
+        }
+    }
+
+    private LocalDate parseDate(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(value, DateTimeFormatter.BASIC_ISO_DATE);
+        } catch (DateTimeParseException ignored) {
+            return null;
+        }
+    }
+
+    private OffsetDateTime parseOffsetDateTime(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return OffsetDateTime.parse(value);
+        } catch (DateTimeParseException ignored) {
+            try {
+                return LocalDateTime.parse(value, SUBMIT_DAY_FORMATTER)
+                        .atOffset(ZoneOffset.UTC);
+            } catch (DateTimeParseException ignoredAgain) {
+                return null;
+            }
+        }
     }
 }

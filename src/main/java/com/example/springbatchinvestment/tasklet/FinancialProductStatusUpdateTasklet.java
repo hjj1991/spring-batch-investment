@@ -3,6 +3,8 @@ package com.example.springbatchinvestment.tasklet;
 import com.example.springbatchinvestment.domain.FinancialProductType;
 import com.example.springbatchinvestment.domain.ProductStatus;
 import com.example.springbatchinvestment.repository.FinancialProductRepository;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.step.StepContribution;
@@ -22,14 +24,14 @@ public class FinancialProductStatusUpdateTasklet implements Tasklet {
     @Transactional
     public RepeatStatus execute(
             @NotNull StepContribution contribution, @NotNull ChunkContext chunkContext) {
+        ZonedDateTime runStartedAt =
+                contribution.getStepExecution().getJobExecution().getCreateTime().atZone(ZoneOffset.UTC);
 
-        // Set all existing SAVINGS products to DELETED
-        this.financialProductRepository.updateStatusByFinancialProductType(
-                FinancialProductType.SAVINGS, ProductStatus.DELETED);
+        this.financialProductRepository.updateStatusForNotSeenProducts(
+                FinancialProductType.SAVINGS, ProductStatus.DELETED, runStartedAt);
 
-        // Set all existing INSTALLMENT_SAVINGS products to DELETED
-        this.financialProductRepository.updateStatusByFinancialProductType(
-                FinancialProductType.INSTALLMENT_SAVINGS, ProductStatus.DELETED);
+        this.financialProductRepository.updateStatusForNotSeenProducts(
+                FinancialProductType.INSTALLMENT_SAVINGS, ProductStatus.DELETED, runStartedAt);
 
         return RepeatStatus.FINISHED;
     }
