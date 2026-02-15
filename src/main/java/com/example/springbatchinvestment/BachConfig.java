@@ -4,25 +4,23 @@ import com.example.springbatchinvestment.client.dto.Company;
 import com.example.springbatchinvestment.domain.FinancialProductModel;
 import com.example.springbatchinvestment.domain.FinancialProductType;
 import com.example.springbatchinvestment.domain.entity.FinancialProductEntity;
-import com.example.springbatchinvestment.domain.es.FinancialProductDocument;
-import com.example.springbatchinvestment.processor.FinancialProductEsItemProcessor;
 import com.example.springbatchinvestment.reader.FinancialCompanyItemReader;
 import com.example.springbatchinvestment.reader.FinancialProductEsItemReader;
 import com.example.springbatchinvestment.reader.FinancialProductItemReader;
 import com.example.springbatchinvestment.repository.FinancialCompanyRepository;
 import com.example.springbatchinvestment.tasklet.FinancialProductStatusUpdateTasklet;
 import com.example.springbatchinvestment.writer.FinancialCompanyItemWriter;
-import com.example.springbatchinvestment.writer.FinancialProductEsItemWriter;
+import com.example.springbatchinvestment.writer.FinancialProductHistoryPgmqItemWriter;
 import com.example.springbatchinvestment.writer.FinancialProductItemWriter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionListener;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.job.parameters.RunIdIncrementer;
+import org.springframework.batch.core.listener.JobExecutionListener;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
+import org.springframework.batch.infrastructure.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,8 +35,8 @@ public class BachConfig {
             "FINANCIAL_PRODUCT_SAVINGS_SYNC_STEP";
     private static final String FINANCIAL_PRODUCT_INSTALLMENT_SAVINGS_SYNC_STEP_NAME =
             "FINANCIAL_PRODUCT_INSTALLMENT_SAVINGS_SYNC_STEP";
-    private static final String FINANCIAL_PRODUCT_ES_SYNC_STEP_NAME =
-            "FINANCIAL_PRODUCT_ES_SYNC_STEP";
+    private static final String FINANCIAL_PRODUCT_HISTORY_PGMQ_SYNC_STEP_NAME =
+            "FINANCIAL_PRODUCT_HISTORY_PGMQ_SYNC_STEP";
     private static final String FINANCIAL_PRODUCT_STATUS_UPDATE_STEP_NAME =
             "FINANCIAL_PRODUCT_STATUS_UPDATE_STEP";
 
@@ -46,9 +44,8 @@ public class BachConfig {
     private final FinancialCompanyRepository financialCompanyRepository;
     private final JobExecutionListener jobLoggerListener;
     private final FinancialProductItemWriter financialProductItemWriter;
-    private final FinancialProductEsItemWriter financialProductEsItemWriter;
     private final FinancialProductEsItemReader financialProductEsItemReader;
-    private final FinancialProductEsItemProcessor financialProductEsItemProcessor;
+    private final FinancialProductHistoryPgmqItemWriter financialProductHistoryPgmqItemWriter;
     private final FinancialProductStatusUpdateTasklet financialProductStatusUpdateTasklet;
 
     @Value(value = "${api.fss.base-url}")
@@ -65,7 +62,7 @@ public class BachConfig {
                 .next(this.financialProductStatusUpdateStep()) // New step added
                 .next(this.financialProductSavingsSyncStep())
                 .next(this.financialProductInstallmentSavingsSyncStep())
-                .next(this.financialProductEsSyncStep())
+                .next(this.financialProductHistoryPgmqSyncStep())
                 .listener(this.jobLoggerListener)
                 .build();
     }
@@ -110,14 +107,13 @@ public class BachConfig {
                 .build();
     }
 
-    @Bean(name = FINANCIAL_PRODUCT_ES_SYNC_STEP_NAME)
-    public Step financialProductEsSyncStep() {
-        return new StepBuilder(FINANCIAL_PRODUCT_ES_SYNC_STEP_NAME, this.jobRepository)
-                .<FinancialProductEntity, FinancialProductDocument>chunk(
+    @Bean(name = FINANCIAL_PRODUCT_HISTORY_PGMQ_SYNC_STEP_NAME)
+    public Step financialProductHistoryPgmqSyncStep() {
+        return new StepBuilder(FINANCIAL_PRODUCT_HISTORY_PGMQ_SYNC_STEP_NAME, this.jobRepository)
+                .<FinancialProductEntity, FinancialProductEntity>chunk(
                         10, new ResourcelessTransactionManager())
                 .reader(this.financialProductEsItemReader.financialProductEsReader())
-                .processor(this.financialProductEsItemProcessor)
-                .writer(this.financialProductEsItemWriter)
+                .writer(this.financialProductHistoryPgmqItemWriter)
                 .build();
     }
 }

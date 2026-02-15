@@ -6,7 +6,6 @@ import com.example.springbatchinvestment.domain.FinancialProductModel;
 import com.example.springbatchinvestment.domain.FinancialProductType;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.item.*;
 
 @Slf4j
 public class FinancialProductItemReader

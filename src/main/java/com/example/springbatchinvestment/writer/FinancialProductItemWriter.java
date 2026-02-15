@@ -9,8 +9,8 @@ import com.example.springbatchinvestment.service.embedding.EmbeddingService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.batch.item.Chunk;
-import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.Chunk;
+import org.springframework.batch.infrastructure.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
 @Component

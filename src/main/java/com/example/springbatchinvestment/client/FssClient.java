@@ -9,6 +9,7 @@ import com.example.springbatchinvestment.domain.FinancialProductType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ConnectTimeoutException;
@@ -26,7 +27,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -46,9 +46,11 @@ public class FssClient {
 
     public FssClient(String baseUrl, String auth) {
         this.auth = auth;
-        ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-        objectMapper.registerModule(new JavaTimeModule());
+        ObjectMapper objectMapper =
+                JsonMapper.builder()
+                        .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+                        .addModule(new JavaTimeModule())
+                        .build();
         objectMapper.setTimeZone(TimeZone.getDefault());
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         ExchangeStrategies exchangeStrategies =

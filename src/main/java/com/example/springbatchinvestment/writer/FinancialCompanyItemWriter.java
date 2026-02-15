@@ -4,8 +4,8 @@ import com.example.springbatchinvestment.client.dto.Company;
 import com.example.springbatchinvestment.domain.entity.FinancialCompanyEntity;
 import com.example.springbatchinvestment.repository.FinancialCompanyRepository;
 import java.util.Optional;
-import org.springframework.batch.item.Chunk;
-import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.Chunk;
+import org.springframework.batch.infrastructure.item.ItemWriter;
 
 public class FinancialCompanyItemWriter implements ItemWriter<Company> {
 
