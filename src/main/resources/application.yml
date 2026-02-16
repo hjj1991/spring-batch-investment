@@ -23,6 +23,7 @@ spring:
 api:
   gemini:
     auth-key: ${GEMINI_AUTH_KEY:NONE}
+    embedding-enabled: ${GEMINI_EMBEDDING_ENABLED:true}
   fss:
     auth-key: ${FSS_AUTH_KEY:NONE}
     base-url: https://finlife.fss.or.kr
@@ -43,6 +44,9 @@ spring:
     console: # H2 DB를 웹에서 관리할 수 있는 기능
       enabled: true           # H2 Console 사용 여부
       path: /h2-console       # H2 Console 접속 주소
+api:
+  gemini:
+    embedding-enabled: false
 --- #local
 spring:
   config:

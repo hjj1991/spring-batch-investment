@@ -10,15 +10,14 @@ import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.batch.infrastructure.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class FinancialProductItemWriter implements ItemWriter<FinancialProductModel> {
 
     private static final String LINE_BREAK = "\n";
@@ -33,7 +32,19 @@ public class FinancialProductItemWriter implements ItemWriter<FinancialProductMo
     private final FinancialProductRepository financialProductRepository;
     private final FinancialCompanyRepository financialCompanyRepository;
     private final EmbeddingService embeddingService;
+    private final boolean embeddingEnabled;
     private ZonedDateTime runStartedAt;
+
+    public FinancialProductItemWriter(
+            FinancialProductRepository financialProductRepository,
+            FinancialCompanyRepository financialCompanyRepository,
+            EmbeddingService embeddingService,
+            @Value("${api.gemini.embedding-enabled:false}") boolean embeddingEnabled) {
+        this.financialProductRepository = financialProductRepository;
+        this.financialCompanyRepository = financialCompanyRepository;
+        this.embeddingService = embeddingService;
+        this.embeddingEnabled = embeddingEnabled;
+    }
 
     @BeforeStep
     public void captureRunStartedAt(StepExecution stepExecution) {
@@ -62,12 +73,11 @@ public class FinancialProductItemWriter implements ItemWriter<FinancialProductMo
                                 financialProductEntity.updateLastSeenAt(this.runStartedAt);
 
                                 if (!newContentHash.equals(financialProductEntity.getProductContentHash())) {
-                                    float[] embeddingVector = this.embeddingService.embed(embeddingText);
                                     financialProductEntity.updateProductContentHash(newContentHash);
-                                    financialProductEntity.updateEmbeddingVector(embeddingVector);
+                                    financialProductEntity.updateEmbeddingVector(
+                                            this.createEmbeddingVector(embeddingText));
                                 }
                             } else {
-                                float[] embeddingVector = this.embeddingService.embed(embeddingText);
                                 financialProductEntity =
                                         FinancialProductEntity.builder()
                                                 .financialCompanyEntity(
@@ -84,10 +94,18 @@ public class FinancialProductItemWriter implements ItemWriter<FinancialProductMo
                                 financialProductEntity.updateByProduct(financialProductModel);
                                 financialProductEntity.updateLastSeenAt(this.runStartedAt);
                                 financialProductEntity.updateProductContentHash(newContentHash);
-                                financialProductEntity.updateEmbeddingVector(embeddingVector);
+                                financialProductEntity.updateEmbeddingVector(
+                                        this.createEmbeddingVector(embeddingText));
                             }
                             this.financialProductRepository.save(financialProductEntity);
                         });
+    }
+
+    private float[] createEmbeddingVector(String embeddingText) {
+        if (!this.embeddingEnabled) {
+            return null;
+        }
+        return this.embeddingService.embed(embeddingText);
     }
 
     private String createEmbeddingText(FinancialProductModel item) {

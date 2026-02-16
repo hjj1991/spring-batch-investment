@@ -18,7 +18,7 @@ import org.springframework.batch.infrastructure.item.UnexpectedInputException;
 public abstract class AbstractFinancialItemReader<A, B, T, U extends Result<A, B>>
         implements ItemStreamReader<T> {
 
-    protected final Logger log = LoggerFactory.getLogger(getClass());
+    protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
     protected final FssClient fssClient;
     protected int currentPage = 1;
@@ -63,7 +63,7 @@ public abstract class AbstractFinancialItemReader<A, B, T, U extends Result<A, B
                 this.fetchData();
             }
             if (this.shouldNextPage()) {
-                log.info(
+                this.log.info(
                         "Fetching next page, currentPage: {}, currentMaxPage: {}, currentPageItems: {}, nextIndexItem: {}",
                         this.currentPage,
                         this.currentMaxPage,
@@ -81,7 +81,7 @@ public abstract class AbstractFinancialItemReader<A, B, T, U extends Result<A, B
     }
 
     private void switchToNextFinancialGroup() {
-        log.info("Switching to next financial group: {}", FinancialGroupType.SAVING_BANK);
+        this.log.info("Switching to next financial group: {}", FinancialGroupType.SAVING_BANK);
         this.currentFinancialGroupType = FinancialGroupType.SAVING_BANK;
         this.currentPage = 1; // Start from page 1 for the new financial group type
         this.currentMaxPage = null;
@@ -106,13 +106,13 @@ public abstract class AbstractFinancialItemReader<A, B, T, U extends Result<A, B
     }
 
     private void fetchData() {
-        log.info(
+        this.log.info(
                 "Fetching data for page {} of financial group {}",
                 this.currentPage,
                 this.currentFinancialGroupType);
         FssResponse<U> resultFssResponse = this.fetchDataFromClient();
         if (resultFssResponse.isSuccess()) {
-            log.info(
+            this.log.info(
                     "Fetched resultFssResponse: {} items from page {} of financial group {}",
                     resultFssResponse,
                     this.currentPage,
