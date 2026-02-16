@@ -1,6 +1,5 @@
 package com.example.springbatchinvestment.domain.entity;
 
-import com.example.springbatchinvestment.converter.FloatArrayConverter;
 import com.example.springbatchinvestment.domain.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +16,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Getter
@@ -41,26 +42,36 @@ public class FinancialProductEntity extends BaseTimeEntity {
 
     @NotNull private String financialProductName;
 
+    @Column(columnDefinition = "text")
     private String joinWay;
 
-    @Lob private String postMaturityInterestRate;
+    @Column(columnDefinition = "text")
+    private String postMaturityInterestRate;
 
-    @Lob private String specialCondition;
+    @Column(columnDefinition = "text")
+    private String specialCondition;
 
     @NotNull
     @Enumerated(EnumType.STRING)
+    @Column(length = 50)
     private JoinRestriction joinRestriction;
 
     @NotNull
     @Enumerated(EnumType.STRING)
+    @Column(length = 50)
     private FinancialProductType financialProductType;
 
-    @NotNull private String joinMember;
+    @NotNull
+    @Column(columnDefinition = "text")
+    private String joinMember;
 
-    @Lob @NotNull private String additionalNotes;
+    @NotNull
+    @Column(columnDefinition = "text")
+    private String additionalNotes;
 
     private Long maxLimit;
 
+    @Column(length = 6, nullable = false)
     private String dclsMonth;
 
     private LocalDate dclsStartDay;
@@ -71,6 +82,7 @@ public class FinancialProductEntity extends BaseTimeEntity {
 
     @NotNull
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private ProductStatus status;
 
     @Column(length = 255) // SHA-256 hash is 64 characters long
@@ -78,11 +90,12 @@ public class FinancialProductEntity extends BaseTimeEntity {
 
     private ZonedDateTime lastSeenAt;
 
-    @Lob
-    @Convert(converter = FloatArrayConverter.class)
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Column(columnDefinition = "vector(768)")
     private float[] embeddingVector;
 
-    @Lob private String sourcePayload;
+    @Column(columnDefinition = "text")
+    private String sourcePayload;
 
     public void updateEmbeddingVector(float[] embeddingVector) {
         this.embeddingVector = embeddingVector;
@@ -96,7 +109,7 @@ public class FinancialProductEntity extends BaseTimeEntity {
         this.lastSeenAt = lastSeenAt;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "financial_company_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private FinancialCompanyEntity financialCompanyEntity;
 

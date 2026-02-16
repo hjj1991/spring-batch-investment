@@ -1,58 +1,26 @@
-version: '3.7'
-
 services:
-    elasticsearch:
-        image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
-        container_name: elasticsearch
-        environment:
-            - discovery.type=single-node
-            - xpack.security.enabled=false
-            - xpack.ml.enabled=false
-            - xpack.security.transport.ssl.enabled=false
-            - bootstrap.memory_lock=true
-            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
-        volumes:
-            - esdata:/usr/share/elasticsearch/data
-        ports:
-            - "9200:9200"
-        networks:
-            - backend
-
-    kibana:
-        image: docker.elastic.co/kibana/kibana:8.13.4
-        container_name: kibana
-        environment:
-            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-        ports:
-            - "5601:5601"
-        depends_on:
-            - elasticsearch
-        networks:
-            - backend
-
-    mysql:
-        image: mysql:8.0
-        container_name: mysql
-        restart: always
-        environment:
-            MYSQL_ROOT_PASSWORD: rootpw
-            MYSQL_DATABASE: api_server
-            MYSQL_USER: mysqluser
-            MYSQL_PASSWORD: mysqlpw
-        ports:
-            - "3306:3306"
-        volumes:
-            - mysqldata:/var/lib/mysql
-        networks:
-            - backend
+  postgres:
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+    image: spring-batch-investment/postgres-timescale-pgmq:pg16
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: api_server
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: Asia/Seoul
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d api_server"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
 volumes:
-    esdata:
-    mysqldata:
-
-networks:
-    backend:
+  postgresdata:

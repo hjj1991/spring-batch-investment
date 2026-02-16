@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Optional;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Getter
@@ -27,16 +29,22 @@ public class FinancialProductOptionEntity extends BaseTimeEntity {
 
     @NotNull
     @Enumerated(EnumType.STRING)
+    @Column(length = 50)
     private InterestRateType interestRateType;
 
+    @Column(length = 100)
     private String interestRateTypeName;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 50)
     private ReserveType reserveType;
 
+    @Column(length = 100)
     private String reserveTypeName;
 
-    @NotNull private Integer depositPeriodMonths;
+    @NotNull
+    @JdbcTypeCode(SqlTypes.SMALLINT)
+    private Integer depositPeriodMonths;
 
     @Column(precision = 8, scale = 5)
     private BigDecimal baseInterestRate;
@@ -44,9 +52,10 @@ public class FinancialProductOptionEntity extends BaseTimeEntity {
     @Column(precision = 8, scale = 5)
     private BigDecimal maximumInterestRate;
 
-    @Lob private String sourcePayload;
+    @Column(columnDefinition = "text")
+    private String sourcePayload;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "financial_product_id")
     private FinancialProductEntity financialProductEntity;
 

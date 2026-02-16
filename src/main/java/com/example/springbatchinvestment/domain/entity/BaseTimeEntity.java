@@ -13,10 +13,10 @@ import lombok.Setter;
 @Setter
 @MappedSuperclass
 public abstract class BaseTimeEntity {
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private ZonedDateTime createdAt;
 
-    @Column(name = "modified_at")
+    @Column(name = "modified_at", nullable = false)
     private ZonedDateTime modifiedAt;
 
     @PrePersist

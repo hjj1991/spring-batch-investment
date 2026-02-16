@@ -2,6 +2,7 @@ package com.example.springbatchinvestment.batch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.example.springbatchinvestment.domain.FinancialGroupType;
 import com.example.springbatchinvestment.domain.FinancialProductType;
 import com.example.springbatchinvestment.domain.JoinRestriction;
@@ -67,7 +68,33 @@ class FinancialSyncBatchIntegrationTest {
     private static final String HISTORY_STEP = "FINANCIAL_PRODUCT_HISTORY_PGMQ_SYNC_STEP";
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
+    static PostgreSQLContainer<?> postgres =
+            new PostgreSQLContainer("pgvector/pgvector:pg16") {
+                        @Override
+                        protected void containerIsStarted(InspectContainerResponse containerInfo) {
+                            super.containerIsStarted(containerInfo);
+                            try {
+                                var result =
+                                        this.execInContainer(
+                                                "psql",
+                                                "-U",
+                                                "postgres",
+                                                "-d",
+                                                "batch_test",
+                                                "-c",
+                                                "CREATE EXTENSION IF NOT EXISTS vector");
+                                if (result.getExitCode() != 0) {
+                                    throw new IllegalStateException(
+                                            "Failed to create vector extension: " + result.getStderr());
+                                }
+                            } catch (Exception exception) {
+                                throw new RuntimeException(exception);
+                            }
+                        }
+                    }
+                    .withDatabaseName("batch_test")
+                    .withUsername("postgres")
+                    .withPassword("postgres");
 
     private static final MockWebServer mockWebServer = new MockWebServer();
 
@@ -184,6 +211,7 @@ class FinancialSyncBatchIntegrationTest {
                 FinancialProductEntity.builder()
                         .financialCompanyEntity(company)
                         .financialProductCode("STALE-001")
+                        .dclsMonth("202501")
                         .financialProductName("오래된상품")
                         .joinRestriction(JoinRestriction.NO_RESTRICTION)
                         .financialProductType(FinancialProductType.SAVINGS)
@@ -216,6 +244,7 @@ class FinancialSyncBatchIntegrationTest {
                 FinancialProductEntity.builder()
                         .financialCompanyEntity(company)
                         .financialProductCode("HIS-001")
+                        .dclsMonth("202501")
                         .financialProductName("이력상품")
                         .joinRestriction(JoinRestriction.NO_RESTRICTION)
                         .financialProductType(FinancialProductType.SAVINGS)
@@ -356,7 +385,6 @@ class FinancialSyncBatchIntegrationTest {
     private void convertLobColumnsToText() {
         this.jdbcTemplate.execute("ALTER TABLE financial_company ALTER COLUMN source_payload TYPE TEXT");
         this.jdbcTemplate.execute("ALTER TABLE financial_product ALTER COLUMN additional_notes TYPE TEXT");
-        this.jdbcTemplate.execute("ALTER TABLE financial_product ALTER COLUMN embedding_vector TYPE TEXT");
         this.jdbcTemplate.execute("ALTER TABLE financial_product ALTER COLUMN post_maturity_interest_rate TYPE TEXT");
         this.jdbcTemplate.execute("ALTER TABLE financial_product ALTER COLUMN source_payload TYPE TEXT");
         this.jdbcTemplate.execute("ALTER TABLE financial_product ALTER COLUMN special_condition TYPE TEXT");

@@ -1,17 +1,18 @@
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 CREATE EXTENSION IF NOT EXISTS pgmq;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE IF NOT EXISTS financial_company (
     financial_company_id BIGSERIAL PRIMARY KEY,
     financial_company_code VARCHAR(20) NOT NULL,
-    dcls_month CHAR(6) NOT NULL,
+    dcls_month VARCHAR(6) NOT NULL,
     company_name VARCHAR(255) NOT NULL,
     dcls_chrg_man VARCHAR(255),
     homp_url VARCHAR(1024),
     cal_tel VARCHAR(100),
     financial_group_type VARCHAR(50) NOT NULL,
-    source_payload JSONB,
+    source_payload TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_financial_company_code UNIQUE (financial_company_code)
@@ -32,7 +33,7 @@ CREATE TABLE IF NOT EXISTS financial_product (
     financial_company_id BIGINT NOT NULL REFERENCES financial_company(financial_company_id),
     financial_product_code VARCHAR(100) NOT NULL,
     financial_product_type VARCHAR(50) NOT NULL,
-    dcls_month CHAR(6) NOT NULL,
+    dcls_month VARCHAR(6) NOT NULL,
     financial_product_name VARCHAR(255) NOT NULL,
     join_way TEXT,
     post_maturity_interest_rate TEXT,
@@ -47,8 +48,8 @@ CREATE TABLE IF NOT EXISTS financial_product (
     status VARCHAR(20) NOT NULL,
     last_seen_at TIMESTAMPTZ,
     product_content_hash VARCHAR(64),
-    embedding_vector TEXT,
-    source_payload JSONB,
+    embedding_vector VECTOR(768),
+    source_payload TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_financial_product_natural UNIQUE (
@@ -59,7 +60,7 @@ CREATE TABLE IF NOT EXISTS financial_product (
 CREATE TABLE IF NOT EXISTS financial_product_option (
     financial_product_option_id BIGSERIAL PRIMARY KEY,
     financial_product_id BIGINT NOT NULL REFERENCES financial_product(financial_product_id),
-    dcls_month CHAR(6) NOT NULL,
+    dcls_month VARCHAR(6) NOT NULL,
     interest_rate_type VARCHAR(50) NOT NULL,
     interest_rate_type_name VARCHAR(100),
     reserve_type VARCHAR(50),
@@ -67,7 +68,7 @@ CREATE TABLE IF NOT EXISTS financial_product_option (
     deposit_period_months SMALLINT NOT NULL,
     base_interest_rate NUMERIC(8,5),
     maximum_interest_rate NUMERIC(8,5),
-    source_payload JSONB,
+    source_payload TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_financial_product_option_natural

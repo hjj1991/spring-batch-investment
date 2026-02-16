@@ -11,17 +11,21 @@
 ## 현재 배치 흐름 (코드 기준)
 - Job: `FINANCIAL_COMPANY_SYNC_JOB` (`src/main/java/com/example/springbatchinvestment/BachConfig.java`)
 - Step 순서:
-  1) 금융기관 적재
-  2) 예금 상품 적재
-  3) 적금 상품 적재
-  4) 이번 실행에서 관측되지 않은 상품만 `DELETED` 처리
-  5) RDB -> History 적재 + PGMQ 이벤트 enqueue
+  1) 금융기관 API 수집 -> staging 적재 (`FINANCIAL_COMPANY_FETCH_STEP`)
+  2) staging -> 금융기관 본 테이블 upsert (`FINANCIAL_COMPANY_SYNC_STEP`)
+  3) 예금 API 수집 -> staging 적재 (`FINANCIAL_PRODUCT_SAVINGS_FETCH_STEP`)
+  4) staging -> 예금 본 테이블 upsert (`FINANCIAL_PRODUCT_SAVINGS_SYNC_STEP`)
+  5) 적금 API 수집 -> staging 적재 (`FINANCIAL_PRODUCT_INSTALLMENT_SAVINGS_FETCH_STEP`)
+  6) staging -> 적금 본 테이블 upsert (`FINANCIAL_PRODUCT_INSTALLMENT_SAVINGS_SYNC_STEP`)
+  7) 이번 실행에서 관측되지 않은 상품만 `DELETED` 처리 (`FINANCIAL_PRODUCT_STATUS_UPDATE_STEP`)
+  8) RDB -> History 적재 + PGMQ 이벤트 enqueue (`FINANCIAL_PRODUCT_HISTORY_PGMQ_SYNC_STEP`)
 - 임베딩: `FinancialProductItemWriter`에서 Gemini 임베딩 생성 후 `embeddingVector` 업데이트.
+  - `api.gemini.embedding-enabled=false`이면 임베딩 API를 호출하지 않고 `embedding_vector`를 `NULL`로 저장.
 
 ## 목표 아키텍처 (ES 제거, PostgreSQL 단일화)
 - 저장소 단일화: MySQL/ES 분리 대신 PostgreSQL 하나로 통합.
 - FSS 응답 원형을 잃지 않도록 핵심 테이블에 `source_payload(JSONB)` 저장.
-- 임베딩 저장: `embedding_vector`(TEXT)에 임베딩 배열 직렬화 저장.
+- 임베딩 저장: `embedding_vector`(`vector(768)`)에 임베딩 저장.
 - 검색: PostgreSQL FTS(`tsvector` + GIN) + `pg_trgm` 유사도 검색.
 - 문서형 데이터: `JSONB`로 이벤트/원본 payload 저장.
 - 시계열/이력: `TimescaleDB` hypertable로 금리/상태 변경 이력 저장.
@@ -87,7 +91,7 @@
 ## 기능 매핑
 | 기능 | 전문 도구 | Postgres 단일화 대안 |
 |------|-----------|-----------------------|
-| 벡터 검색 | Pinecone, Weaviate | 임베딩 벡터 문자열 저장(향후 pgvector 전환 가능) |
+| 벡터 검색 | Pinecone, Weaviate | pgvector(`vector(768)`) |
 | 문서 데이터 | MongoDB | `JSONB` |
 | 메시지 큐 | Kafka, RabbitMQ | `pgmq` |
 | 검색 엔진 | Elasticsearch | FTS(`to_tsvector`) + `pg_trgm` |

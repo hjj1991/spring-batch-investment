@@ -27,21 +27,27 @@ public class FinancialCompanyEntity extends BaseTimeEntity {
     @Column(length = 20, unique = true)
     private String financialCompanyCode;
 
-    @NotNull private String dclsMonth;
+    @NotNull
+    @Column(length = 6)
+    private String dclsMonth;
 
     @NotNull private String companyName;
 
     private String dclsChrgMan;
 
+    @Column(length = 1024)
     private String hompUrl;
 
+    @Column(length = 100)
     private String calTel;
 
     @NotNull
     @Enumerated(EnumType.STRING)
+    @Column(length = 50)
     private FinancialGroupType financialGroupType;
 
-    @Lob private String sourcePayload;
+    @Column(columnDefinition = "text")
+    private String sourcePayload;
 
     public void updateByCompany(Company company) {
         this.dclsMonth = company.dclsMonth();
