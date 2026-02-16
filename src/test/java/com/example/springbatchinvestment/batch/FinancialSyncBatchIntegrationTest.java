@@ -51,7 +51,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
             "spring.profiles.active=test",
             "spring.batch.job.enabled=false",
             "spring.batch.jdbc.initialize-schema=always",
-            "spring.jpa.hibernate.ddl-auto=create-drop",
+            "spring.jpa.hibernate.ddl-auto=create",
             "api.fss.auth-key=test-key",
             "api.gemini.auth-key=test-key"
         })
