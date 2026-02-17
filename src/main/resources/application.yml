@@ -18,12 +18,14 @@ spring:
     job:
       name: ${job.name:NONE}
       enabled: true
+      repository:
+        type: jdbc
     jdbc:
       initialize-schema: never
 api:
   gemini:
     auth-key: ${GEMINI_AUTH_KEY:NONE}
-    embedding-enabled: ${GEMINI_EMBEDDING_ENABLED:true}
+    embedding-enabled: ${GEMINI_EMBEDDING_ENABLED:false}
   fss:
     auth-key: ${FSS_AUTH_KEY:NONE}
     base-url: https://finlife.fss.or.kr

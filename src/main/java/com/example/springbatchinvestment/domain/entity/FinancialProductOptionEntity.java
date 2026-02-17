@@ -59,6 +59,10 @@ public class FinancialProductOptionEntity extends BaseTimeEntity {
     @JoinColumn(name = "financial_product_id")
     private FinancialProductEntity financialProductEntity;
 
+    public void updateSourcePayload(String sourcePayload) {
+        this.sourcePayload = sourcePayload;
+    }
+
     public void updateByProductOption(FinancialProductOptionModel financialProductOptionModel) {
         this.dclsMonth = financialProductOptionModel.dclsMonth();
         this.interestRateType = InterestRateType.fromCode(financialProductOptionModel.intrRateType());
@@ -74,6 +78,5 @@ public class FinancialProductOptionEntity extends BaseTimeEntity {
                 Optional.ofNullable(financialProductOptionModel.intrRate2())
                         .map(BigDecimal::valueOf)
                         .orElse(null);
-        this.sourcePayload = financialProductOptionModel.toString();
     }
 }

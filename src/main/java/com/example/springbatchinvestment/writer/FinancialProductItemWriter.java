@@ -9,13 +9,18 @@ import com.example.springbatchinvestment.service.embedding.EmbeddingService;
 import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.batch.infrastructure.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class FinancialProductItemWriter implements ItemWriter<FinancialProductModel> {
@@ -32,6 +37,7 @@ public class FinancialProductItemWriter implements ItemWriter<FinancialProductMo
     private final FinancialProductRepository financialProductRepository;
     private final FinancialCompanyRepository financialCompanyRepository;
     private final EmbeddingService embeddingService;
+    private final ObjectMapper objectMapper;
     private final boolean embeddingEnabled;
     private ZonedDateTime runStartedAt;
 
@@ -39,10 +45,12 @@ public class FinancialProductItemWriter implements ItemWriter<FinancialProductMo
             FinancialProductRepository financialProductRepository,
             FinancialCompanyRepository financialCompanyRepository,
             EmbeddingService embeddingService,
+            ObjectMapper objectMapper,
             @Value("${api.gemini.embedding-enabled:false}") boolean embeddingEnabled) {
         this.financialProductRepository = financialProductRepository;
         this.financialCompanyRepository = financialCompanyRepository;
         this.embeddingService = embeddingService;
+        this.objectMapper = objectMapper;
         this.embeddingEnabled = embeddingEnabled;
     }
 
@@ -66,10 +74,17 @@ public class FinancialProductItemWriter implements ItemWriter<FinancialProductMo
                             FinancialProductEntity financialProductEntity;
                             String newContentHash = financialProductModel.generateContentHash();
                             String embeddingText = this.createEmbeddingText(financialProductModel);
+                            String sourcePayload = this.toJsonStringOrNull(financialProductModel);
+                            Map<OptionKey, String> optionSourcePayloadMap =
+                                    this.createOptionSourcePayloadMap(
+                                            financialProductModel.financialProductOptionModels());
 
                             if (optionalFinancialProductEntity.isPresent()) {
                                 financialProductEntity = optionalFinancialProductEntity.get();
                                 financialProductEntity.updateByProduct(financialProductModel);
+                                financialProductEntity.updateSourcePayload(sourcePayload);
+                                this.applyOptionSourcePayloads(
+                                        financialProductEntity, optionSourcePayloadMap);
                                 financialProductEntity.updateLastSeenAt(this.runStartedAt);
 
                                 if (!newContentHash.equals(financialProductEntity.getProductContentHash())) {
@@ -92,6 +107,9 @@ public class FinancialProductItemWriter implements ItemWriter<FinancialProductMo
                                                 .status(ProductStatus.ACTIVE)
                                                 .build();
                                 financialProductEntity.updateByProduct(financialProductModel);
+                                financialProductEntity.updateSourcePayload(sourcePayload);
+                                this.applyOptionSourcePayloads(
+                                        financialProductEntity, optionSourcePayloadMap);
                                 financialProductEntity.updateLastSeenAt(this.runStartedAt);
                                 financialProductEntity.updateProductContentHash(newContentHash);
                                 financialProductEntity.updateEmbeddingVector(
@@ -140,4 +158,50 @@ public class FinancialProductItemWriter implements ItemWriter<FinancialProductMo
                 EMBEDDING_TEMPLATE,
                 companyName, productName, specialCondition, joinWay, postMaturityInterestRate, etcNote);
     }
+
+    private Map<OptionKey, String> createOptionSourcePayloadMap(
+            List<FinancialProductOptionModel> financialProductOptionModels) {
+        return financialProductOptionModels.stream()
+                .collect(
+                        Collectors.toMap(
+                                this::createOptionKey,
+                                this::toJsonStringOrNull,
+                                (first, ignored) -> first));
+    }
+
+    private OptionKey createOptionKey(FinancialProductOptionModel model) {
+        return new OptionKey(
+                model.dclsMonth(),
+                InterestRateType.fromCode(model.intrRateType()),
+                ReserveType.fromCode(model.rsrvType()),
+                Integer.valueOf(model.saveTrm()));
+    }
+
+    private void applyOptionSourcePayloads(
+            FinancialProductEntity financialProductEntity, Map<OptionKey, String> optionSourcePayloadMap) {
+        for (FinancialProductOptionEntity optionEntity :
+                financialProductEntity.getFinancialProductOptionEntities()) {
+            OptionKey optionKey =
+                    new OptionKey(
+                            optionEntity.getDclsMonth(),
+                            optionEntity.getInterestRateType(),
+                            optionEntity.getReserveType(),
+                            optionEntity.getDepositPeriodMonths());
+            optionEntity.updateSourcePayload(optionSourcePayloadMap.get(optionKey));
+        }
+    }
+
+    private String toJsonStringOrNull(Object value) {
+        try {
+            return this.objectMapper.writeValueAsString(value);
+        } catch (JacksonException exception) {
+            return null;
+        }
+    }
+
+    private record OptionKey(
+            String dclsMonth,
+            InterestRateType interestRateType,
+            ReserveType reserveType,
+            Integer depositPeriodMonths) {}
 }

@@ -221,6 +221,12 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
                         :baseInterestRate,
                         :maximumInterestRate
                     )
+                    ON CONFLICT (observed_at, financial_product_id, interest_rate_type, deposit_period_months)
+                    DO UPDATE SET
+                        financial_product_option_id = EXCLUDED.financial_product_option_id,
+                        reserve_type = EXCLUDED.reserve_type,
+                        base_interest_rate = EXCLUDED.base_interest_rate,
+                        maximum_interest_rate = EXCLUDED.maximum_interest_rate
                     """,
                     new MapSqlParameterSource()
                             .addValue("observedAt", observedAt)

@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -63,6 +64,15 @@ class FinancialProductHistoryPgmqItemWriterTest {
                 .update(anyString(), any(SqlParameterSource.class));
         verify(this.namedParameterJdbcTemplate, times(1))
                 .queryForObject(anyString(), any(SqlParameterSource.class), eq(Long.class));
+
+        ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(this.namedParameterJdbcTemplate, times(2))
+                .update(sqlCaptor.capture(), any(SqlParameterSource.class));
+        org.assertj.core.api.Assertions.assertThat(sqlCaptor.getAllValues())
+                .anyMatch(
+                        sql ->
+                                sql.contains(
+                                        "ON CONFLICT (observed_at, financial_product_id, interest_rate_type, deposit_period_months)"));
     }
 
     @Test

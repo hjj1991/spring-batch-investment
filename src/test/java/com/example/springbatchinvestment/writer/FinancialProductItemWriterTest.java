@@ -27,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.step.StepExecution;
 import org.springframework.batch.infrastructure.item.Chunk;
+import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
 class FinancialProductItemWriterTest {
@@ -42,6 +43,7 @@ class FinancialProductItemWriterTest {
                         this.financialProductRepository,
                         this.financialCompanyRepository,
                         this.embeddingService,
+                        new ObjectMapper(),
                         false);
         this.initializeRunStartedAt(writer);
 
@@ -61,6 +63,7 @@ class FinancialProductItemWriterTest {
                 ArgumentCaptor.forClass(FinancialProductEntity.class);
         verify(this.financialProductRepository).save(entityCaptor.capture());
         assertThat(entityCaptor.getValue().getEmbeddingVector()).isNull();
+        assertThat(entityCaptor.getValue().getSourcePayload()).contains("\"finPrdtCd\":\"PRDT-001\"");
         verify(this.embeddingService, never()).embed(any());
     }
 
@@ -71,6 +74,7 @@ class FinancialProductItemWriterTest {
                         this.financialProductRepository,
                         this.financialCompanyRepository,
                         this.embeddingService,
+                        new ObjectMapper(),
                         true);
         this.initializeRunStartedAt(writer);
 

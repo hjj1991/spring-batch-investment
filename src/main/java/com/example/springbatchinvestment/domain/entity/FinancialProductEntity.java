@@ -101,6 +101,10 @@ public class FinancialProductEntity extends BaseTimeEntity {
         this.embeddingVector = embeddingVector;
     }
 
+    public void updateSourcePayload(String sourcePayload) {
+        this.sourcePayload = sourcePayload;
+    }
+
     public void updateProductContentHash(String productContentHash) {
         this.productContentHash = productContentHash;
     }
@@ -133,11 +137,12 @@ public class FinancialProductEntity extends BaseTimeEntity {
         this.dclsStartDay = this.parseDate(financialProductModel.dclsStrtDay());
         this.dclsEndDay = this.parseDate(financialProductModel.dclsEndDay());
         this.financialSubmitDay = this.parseOffsetDateTime(financialProductModel.finCoSubmDay());
-        this.sourcePayload = financialProductModel.toString();
-        this.financialProductOptionEntities =
+        List<FinancialProductOptionEntity> updatedOptions =
                 financialProductModel.financialProductOptionModels().stream()
                         .map(this::updateOrCreateOption)
                         .toList();
+        this.financialProductOptionEntities.clear();
+        this.financialProductOptionEntities.addAll(updatedOptions);
     }
 
     private FinancialProductOptionEntity updateOrCreateOption(
@@ -175,7 +180,6 @@ public class FinancialProductEntity extends BaseTimeEntity {
                 .depositPeriodMonths(this.parseDepositPeriodMonths(model.saveTrm()))
                 .baseInterestRate(BigDecimal.valueOf(model.intrRate()))
                 .maximumInterestRate(BigDecimal.valueOf(model.intrRate2()))
-                .sourcePayload(model.toString())
                 .build();
     }
 
