@@ -37,14 +37,15 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
         OffsetDateTime observedAt = OffsetDateTime.now();
 
         for (FinancialProductEntity financialProductEntity : chunk.getItems()) {
-            String currentPayload =
-                    this.objectMapper.writeValueAsString(this.createHistoryPayload(financialProductEntity));
-            PreviousProductSnapshot previousSnapshot = this.findPreviousSnapshot(financialProductEntity);
-            if (this.isUnchanged(financialProductEntity, previousSnapshot, currentPayload)) {
+            Map<String, Object> currentPayloadObject = this.createHistoryPayload(financialProductEntity);
+            String currentPayload = this.objectMapper.writeValueAsString(currentPayloadObject);
+            PreviousProductSnapshot previousSnapshot =
+                    this.findPreviousSnapshot(financialProductEntity, currentPayload);
+            if (this.isUnchanged(financialProductEntity, previousSnapshot)) {
                 continue;
             }
 
-            String eventType = this.resolveEventType(financialProductEntity, previousSnapshot, currentPayload);
+            String eventType = this.resolveEventType(financialProductEntity, previousSnapshot);
             this.insertProductHistory(financialProductEntity, observedAt, currentPayload);
             this.insertRateHistory(financialProductEntity, observedAt);
             if (eventType != null) {
@@ -53,34 +54,37 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
         }
     }
 
-    private PreviousProductSnapshot findPreviousSnapshot(FinancialProductEntity financialProductEntity) {
+    private PreviousProductSnapshot findPreviousSnapshot(
+            FinancialProductEntity financialProductEntity, String currentPayload) {
         List<Map<String, Object>> rows =
                 this.namedParameterJdbcTemplate.queryForList(
                         """
-                        SELECT status, product_content_hash, payload
+                        SELECT
+                            status,
+                            product_content_hash,
+                            (payload = CAST(:payload AS jsonb)) AS payload_equal
                         FROM financial_product_history
                         WHERE financial_product_id = :financialProductId
                         ORDER BY observed_at DESC
                         LIMIT 1
                         """,
                         new MapSqlParameterSource()
-                                .addValue("financialProductId", financialProductEntity.getFinancialProductId()));
+                                .addValue("financialProductId", financialProductEntity.getFinancialProductId())
+                                .addValue("payload", currentPayload));
 
         if (rows.isEmpty()) {
             return null;
         }
 
-        Map<String, Object> previousRow = rows.get(0);
+        Map<String, Object> previousRow = rows.getFirst();
         return new PreviousProductSnapshot(
                 (String) previousRow.get("status"),
                 (String) previousRow.get("product_content_hash"),
-                previousRow.get("payload") == null ? null : previousRow.get("payload").toString());
+                Boolean.TRUE.equals(previousRow.get("payload_equal")));
     }
 
     private boolean isUnchanged(
-            FinancialProductEntity financialProductEntity,
-            PreviousProductSnapshot previousSnapshot,
-            String currentPayload) {
+            FinancialProductEntity financialProductEntity, PreviousProductSnapshot previousSnapshot) {
         if (previousSnapshot == null) {
             return false;
         }
@@ -89,13 +93,11 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
         String currentHash = financialProductEntity.getProductContentHash();
         return Objects.equals(previousSnapshot.status(), currentStatus)
                 && Objects.equals(previousSnapshot.productContentHash(), currentHash)
-                && Objects.equals(previousSnapshot.payload(), currentPayload);
+                && previousSnapshot.payloadEqual();
     }
 
     private String resolveEventType(
-            FinancialProductEntity financialProductEntity,
-            PreviousProductSnapshot previousSnapshot,
-            String currentPayload) {
+            FinancialProductEntity financialProductEntity, PreviousProductSnapshot previousSnapshot) {
         if (previousSnapshot == null) {
             return EVENT_TYPE_NEW_PRODUCT;
         }
@@ -106,7 +108,7 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
             return EVENT_TYPE_STATUS_CHANGED;
         }
         if (!Objects.equals(previousSnapshot.productContentHash(), currentHash)
-                || !Objects.equals(previousSnapshot.payload(), currentPayload)) {
+                || !previousSnapshot.payloadEqual()) {
             return EVENT_TYPE_CONTENT_CHANGED;
         }
         return null;
@@ -267,5 +269,6 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
                 Long.class);
     }
 
-    private record PreviousProductSnapshot(String status, String productContentHash, String payload) {}
+    private record PreviousProductSnapshot(
+            String status, String productContentHash, boolean payloadEqual) {}
 }

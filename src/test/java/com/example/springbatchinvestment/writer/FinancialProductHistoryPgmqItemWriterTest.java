@@ -85,7 +85,27 @@ class FinancialProductHistoryPgmqItemWriterTest {
                                 Map.of(
                                         "status", ProductStatus.ACTIVE.name(),
                                         "product_content_hash", "hash-1",
-                                        "payload", "{}")));
+                                        "payload_equal", true)));
+
+        this.writer.write(new Chunk<>(List.of(entity)));
+
+        verify(this.namedParameterJdbcTemplate, never())
+                .update(anyString(), any(SqlParameterSource.class));
+        verify(this.namedParameterJdbcTemplate, never())
+                .queryForObject(anyString(), any(SqlParameterSource.class), eq(Long.class));
+    }
+
+    @Test
+    void payload문자열순서가달라도_동일json이면_이력미적재한다() throws Exception {
+        FinancialProductEntity entity = this.createEntity();
+        when(this.objectMapper.writeValueAsString(any())).thenReturn("{\"a\":1,\"b\":2}");
+        when(this.namedParameterJdbcTemplate.queryForList(anyString(), any(SqlParameterSource.class)))
+                .thenReturn(
+                        List.of(
+                                Map.of(
+                                        "status", ProductStatus.ACTIVE.name(),
+                                        "product_content_hash", "hash-1",
+                                        "payload_equal", true)));
 
         this.writer.write(new Chunk<>(List.of(entity)));
 

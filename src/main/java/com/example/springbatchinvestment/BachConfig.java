@@ -15,9 +15,11 @@ import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.job.parameters.RunIdIncrementer;
 import org.springframework.batch.core.listener.JobExecutionListener;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.Step;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.core.configuration.annotation.EnableJdbcJobRepository;
 import org.springframework.batch.infrastructure.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +32,8 @@ import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableBatchProcessing
+@EnableJdbcJobRepository
 public class BachConfig {
 
     private static final int CHUNK_SIZE = 10;
