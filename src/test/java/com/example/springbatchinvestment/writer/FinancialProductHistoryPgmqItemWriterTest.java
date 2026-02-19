@@ -17,6 +17,8 @@ import com.example.springbatchinvestment.domain.entity.FinancialCompanyEntity;
 import com.example.springbatchinvestment.domain.entity.FinancialProductEntity;
 import com.example.springbatchinvestment.domain.entity.FinancialProductOptionEntity;
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,6 +75,19 @@ class FinancialProductHistoryPgmqItemWriterTest {
                         sql ->
                                 sql.contains(
                                         "ON CONFLICT (observed_at, financial_product_id, interest_rate_type, deposit_period_months)"));
+
+        ArgumentCaptor<SqlParameterSource> parameterSourceCaptor =
+                ArgumentCaptor.forClass(SqlParameterSource.class);
+        verify(this.namedParameterJdbcTemplate, times(2))
+                .update(anyString(), parameterSourceCaptor.capture());
+        org.assertj.core.api.Assertions.assertThat(parameterSourceCaptor.getAllValues())
+                .allSatisfy(
+                        parameterSource -> {
+                            OffsetDateTime observedAt =
+                                    (OffsetDateTime) parameterSource.getValue("observedAt");
+                            org.assertj.core.api.Assertions.assertThat(observedAt.getOffset())
+                                    .isEqualTo(ZoneOffset.UTC);
+                        });
     }
 
     @Test

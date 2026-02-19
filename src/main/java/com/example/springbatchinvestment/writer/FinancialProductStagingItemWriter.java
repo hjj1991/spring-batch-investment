@@ -2,6 +2,8 @@ package com.example.springbatchinvestment.writer;
 
 import com.example.springbatchinvestment.domain.FinancialProductModel;
 import com.example.springbatchinvestment.domain.FinancialProductType;
+import java.time.Clock;
+import java.time.OffsetDateTime;
 import java.util.List;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.infrastructure.item.Chunk;
@@ -35,7 +37,7 @@ public class FinancialProductStagingItemWriter implements ItemWriter<FinancialPr
                             id BIGSERIAL PRIMARY KEY,
                             financial_product_type VARCHAR(50) NOT NULL,
                             product_payload JSONB NOT NULL,
-                            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                            created_at TIMESTAMPTZ NOT NULL
                         )
                         """);
         this.namedParameterJdbcTemplate.update(
@@ -51,15 +53,18 @@ public class FinancialProductStagingItemWriter implements ItemWriter<FinancialPr
                     """
                     INSERT INTO financial_product_staging(
                         financial_product_type,
-                        product_payload
+                        product_payload,
+                        created_at
                     ) VALUES (
                         :financialProductType,
-                        CAST(:productPayload AS jsonb)
+                        CAST(:productPayload AS jsonb),
+                        :createdAt
                     )
                     """,
                     new MapSqlParameterSource()
                             .addValue("financialProductType", this.financialProductType.name())
-                            .addValue("productPayload", this.objectMapper.writeValueAsString(item)));
+                            .addValue("productPayload", this.objectMapper.writeValueAsString(item))
+                            .addValue("createdAt", OffsetDateTime.now(Clock.systemUTC())));
         }
     }
 }

@@ -4,8 +4,10 @@ import com.example.springbatchinvestment.client.dto.Company;
 import com.example.springbatchinvestment.client.dto.CompanyArea;
 import com.example.springbatchinvestment.domain.CompanySyncItem;
 import com.example.springbatchinvestment.domain.entity.FinancialCompanyEntity;
-import java.util.List;
 import com.example.springbatchinvestment.repository.FinancialCompanyRepository;
+import java.time.Clock;
+import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.batch.infrastructure.item.ItemWriter;
@@ -67,12 +69,14 @@ public class FinancialCompanyItemWriter implements ItemWriter<CompanySyncItem> {
 
     private void upsertCompanyAreas(Long financialCompanyId, List<CompanyArea> companyAreas) {
         for (CompanyArea companyArea : companyAreas) {
+            OffsetDateTime currentUtcDateTime = OffsetDateTime.now(Clock.systemUTC());
             MapSqlParameterSource parameters =
                     new MapSqlParameterSource()
                             .addValue("financialCompanyId", financialCompanyId)
                             .addValue("areaCode", companyArea.areaCd())
                             .addValue("areaName", companyArea.areaNm())
-                            .addValue("isAvailable", "Y".equalsIgnoreCase(companyArea.exisYn()));
+                            .addValue("isAvailable", "Y".equalsIgnoreCase(companyArea.exisYn()))
+                            .addValue("currentUtcDateTime", currentUtcDateTime);
 
             this.namedParameterJdbcTemplate.update(
                     """
@@ -83,12 +87,19 @@ public class FinancialCompanyItemWriter implements ItemWriter<CompanySyncItem> {
                         is_available,
                         created_at,
                         modified_at
-                    ) VALUES (:financialCompanyId, :areaCode, :areaName, :isAvailable, NOW(), NOW())
+                    ) VALUES (
+                        :financialCompanyId,
+                        :areaCode,
+                        :areaName,
+                        :isAvailable,
+                        :currentUtcDateTime,
+                        :currentUtcDateTime
+                    )
                     ON CONFLICT (financial_company_id, area_code)
                     DO UPDATE SET
                         area_name = EXCLUDED.area_name,
                         is_available = EXCLUDED.is_available,
-                        modified_at = NOW()
+                        modified_at = :currentUtcDateTime
                     """,
                     parameters);
         }

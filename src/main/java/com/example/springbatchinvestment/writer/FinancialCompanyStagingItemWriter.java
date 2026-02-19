@@ -1,6 +1,8 @@
 package com.example.springbatchinvestment.writer;
 
 import com.example.springbatchinvestment.domain.CompanySyncItem;
+import java.time.Clock;
+import java.time.OffsetDateTime;
 import java.util.List;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.infrastructure.item.Chunk;
@@ -32,7 +34,7 @@ public class FinancialCompanyStagingItemWriter implements ItemWriter<CompanySync
                             id BIGSERIAL PRIMARY KEY,
                             company_payload JSONB NOT NULL,
                             company_areas_payload JSONB NOT NULL,
-                            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                            created_at TIMESTAMPTZ NOT NULL
                         )
                         """);
         this.namedParameterJdbcTemplate.getJdbcOperations().execute("TRUNCATE TABLE " + STAGING_TABLE_NAME);
@@ -46,17 +48,20 @@ public class FinancialCompanyStagingItemWriter implements ItemWriter<CompanySync
                     """
                     INSERT INTO financial_company_staging(
                         company_payload,
-                        company_areas_payload
+                        company_areas_payload,
+                        created_at
                     ) VALUES (
                         CAST(:companyPayload AS jsonb),
-                        CAST(:companyAreasPayload AS jsonb)
+                        CAST(:companyAreasPayload AS jsonb),
+                        :createdAt
                     )
                     """,
                     new MapSqlParameterSource()
                             .addValue("companyPayload", this.objectMapper.writeValueAsString(item.company()))
                             .addValue(
                                     "companyAreasPayload",
-                                    this.objectMapper.writeValueAsString(item.companyAreas())));
+                                    this.objectMapper.writeValueAsString(item.companyAreas()))
+                            .addValue("createdAt", OffsetDateTime.now(Clock.systemUTC())));
         }
     }
 }

@@ -2,6 +2,7 @@ package com.example.springbatchinvestment.writer;
 
 import com.example.springbatchinvestment.domain.entity.FinancialProductEntity;
 import com.example.springbatchinvestment.domain.entity.FinancialProductOptionEntity;
+import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -34,7 +35,7 @@ public class FinancialProductHistoryPgmqItemWriter implements ItemWriter<Financi
     @Override
     public void write(Chunk<? extends FinancialProductEntity> chunk) throws Exception {
         this.initializeQueue();
-        OffsetDateTime observedAt = OffsetDateTime.now();
+        OffsetDateTime observedAt = OffsetDateTime.now(Clock.systemUTC());
 
         for (FinancialProductEntity financialProductEntity : chunk.getItems()) {
             Map<String, Object> currentPayloadObject = this.createHistoryPayload(financialProductEntity);
